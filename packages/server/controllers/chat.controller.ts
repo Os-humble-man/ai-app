@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import { chatService } from '../services/chat.service';
 
 const ConversationSchema = z.object({
-   conversationId: z.string().uuid(),
+   conversationId: z.string().uuid().optional(),
    prompt: z
       .string()
       .trim()
