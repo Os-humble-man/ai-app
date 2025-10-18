@@ -18,7 +18,9 @@
     "packages/*"
   ],
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.14",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "tailwindcss": "^4.1.14"
   }
 }

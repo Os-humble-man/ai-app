@@ -1,22 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
-import './App.css'
+import "./App.css";
 
 function App() {
-  const [message, setMessage] = useState<string>('')
+  const [message, setMessage] = useState<string>("");
 
   useEffect(() => {
-    fetch('api/hello')
+    fetch("api/hello")
       .then((response) => response.json())
       .then((data) => setMessage(data.message))
-      .catch((error) => console.error('Error fetching message:', error))
-  }, [])
-  return(
+      .catch((error) => console.error("Error fetching message:", error));
+  }, []);
+  return (
     <div className="App">
-      <h1>AI App Client</h1>
-      <p>Message from server: {message}</p>
+      <h1 className="text-2xl text-red-400 font-bold">AI App Client</h1>
+      <p className="text-lg text-gray-600">Message from server: {message}</p>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
