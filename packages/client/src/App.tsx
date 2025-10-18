@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-
 import "./App.css";
+import { Button } from "./components/ui/button";
 
 function App() {
   const [message, setMessage] = useState<string>("");
@@ -15,6 +15,7 @@ function App() {
     <div className="App">
       <h1 className="text-2xl text-red-400 font-bold">AI App Client</h1>
       <p className="text-lg text-gray-600">Message from server: {message}</p>
+      <Button>Click me</Button>
     </div>
   );
 }
