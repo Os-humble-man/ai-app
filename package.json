@@ -1,26 +1,28 @@
 {
-  "name": "ai-app",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "dev": "bun run index.ts"
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@types/express": "^5.0.3",
-    "concurrently": "^9.2.1"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "workspaces": [
-    "packages/*"
-  ],
-  "dependencies": {
-    "@tailwindcss/vite": "^4.1.14",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "tailwindcss": "^4.1.14"
-  }
+   "name": "ai-app",
+   "module": "index.ts",
+   "type": "module",
+   "private": true,
+   "scripts": {
+      "dev": "bun run index.ts",
+      "format": "prettier --write ."
+   },
+   "devDependencies": {
+      "@types/bun": "latest",
+      "@types/express": "^5.0.3",
+      "concurrently": "^9.2.1",
+      "prettier": "^3.6.2"
+   },
+   "peerDependencies": {
+      "typescript": "^5"
+   },
+   "workspaces": [
+      "packages/*"
+   ],
+   "dependencies": {
+      "@tailwindcss/vite": "^4.1.14",
+      "dotenv": "^17.2.3",
+      "express": "^5.1.0",
+      "tailwindcss": "^4.1.14"
+   }
 }
