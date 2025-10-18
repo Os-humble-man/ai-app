@@ -7,19 +7,16 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
-    res.json({ message: 'Hello World!' });
+   res.json({ message: 'Hello World!' });
 });
 
 app.get('/api/hello', (req: Request, res: Response) => {
-    res.json({ message: 'Hello World From server' });
+   res.json({ message: 'Hello World From server' });
 });
 
-
-
 app.listen(PORT, () => {
-    console.log(`Server running on port http://localhost:${PORT}`);
+   console.log(`Server running on port http://localhost:${PORT}`);
 });
