@@ -31,4 +31,52 @@ export const chatController = {
          res.status(500).json({ error: 'Failed to get response from AI' });
       }
    },
+
+   async handleStreamMessage(req: Request, res: Response) {
+      const { prompt, conversationId } = req.body;
+      const result = ConversationSchema.safeParse(req.body);
+      if (!result.success) {
+         return res.status(400).json({ errors: result.error.format() });
+      }
+
+      try {
+         // Set headers for Server-Sent Events
+         res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+         });
+
+         // Send initial connection event
+         res.write('data: {"type":"connected"}\n\n');
+
+         const stream = chatService.sendMessageStream(prompt, conversationId);
+
+         for await (const chunk of stream) {
+            const data = JSON.stringify({
+               type: chunk.done ? 'done' : 'chunk',
+               id: chunk.id,
+               content: chunk.content,
+            });
+
+            res.write(`data: ${data}\n\n`);
+
+            if (chunk.done) {
+               break;
+            }
+         }
+
+         res.end();
+      } catch (error) {
+         console.error('Error in streaming:', error);
+         const errorData = JSON.stringify({
+            type: 'error',
+            error: 'Failed to get response from AI',
+         });
+         res.write(`data: ${errorData}\n\n`);
+         res.end();
+      }
+   },
 };

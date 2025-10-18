@@ -43,4 +43,58 @@ export const chatService = {
          message: assistantMessage,
       };
    },
+
+   async *sendMessageStream(
+      prompt: string,
+      conversationId: string
+   ): AsyncGenerator<{ id: string; content: string; done: boolean }> {
+      let messages =
+         conversationRepository.getLastResponseId(conversationId) || [];
+
+      // Add the user's new message to the conversation
+      messages.push({ role: 'user', content: prompt });
+
+      const stream = await openai.chat.completions.create({
+         model: 'gpt-4o-mini',
+         messages: messages,
+         temperature: 0.2,
+         max_tokens: 1000,
+         stream: true,
+      });
+
+      let fullResponse = '';
+      let responseId = '';
+
+      for await (const chunk of stream) {
+         const delta = chunk.choices[0]?.delta;
+
+         if (chunk.id && !responseId) {
+            responseId = chunk.id;
+         }
+
+         if (delta?.content) {
+            fullResponse += delta.content;
+            yield {
+               id: responseId,
+               content: delta.content,
+               done: false,
+            };
+         }
+      }
+
+      // Add the complete assistant's response to the conversation
+      messages.push({ role: 'assistant', content: fullResponse });
+
+      // Update conversation history
+      conversationRepository.setLastResponseId(conversationId, messages);
+
+      console.log(`Conversation ${conversationId}:`, messages);
+
+      // Signal that streaming is complete
+      yield {
+         id: responseId,
+         content: '',
+         done: true,
+      };
+   },
 };

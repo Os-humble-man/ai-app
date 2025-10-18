@@ -21,11 +21,24 @@ export const ChatBox = () => {
       setInputValue('');
       setIsLoading(true);
 
+      // Créer immédiatement un message AI vide pour le streaming
+      const aiMessageId = (Date.now() + 1).toString();
+      const initialAiMessage: Message = {
+         id: aiMessageId,
+         content: '',
+         sender: 'ai',
+         timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, initialAiMessage]);
+
       try {
-         // Appel API à votre backend
-         const response = await fetch('/api/chat', {
+         // Alternative avec fetch et ReadableStream
+         const response = await fetch('/api/chat/stream', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+               'Content-Type': 'application/json',
+               Accept: 'text/event-stream',
+            },
             body: JSON.stringify({ prompt: newUserMessage.content }),
          });
 
@@ -33,43 +46,75 @@ export const ChatBox = () => {
             throw new Error(`Erreur HTTP: ${response.status}`);
          }
 
-         const data = await response.json();
-         console.log('Réponse du serveur:', data);
+         const reader = response.body?.getReader();
+         const decoder = new TextDecoder();
 
-         // Traitement de la réponse selon votre format
-         if (data.message && data.message.message) {
-            const aiMessage: Message = {
-               id: data.message.id || (Date.now() + 1).toString(),
-               content: data.message.message,
-               sender: 'ai',
-               timestamp: new Date(),
-            };
-            setMessages((prev) => [...prev, aiMessage]);
-         } else {
-            // Gestion d'erreur si le format n'est pas correct
-            const errorMessage: Message = {
-               id: (Date.now() + 1).toString(),
-               content:
-                  "Désolé, j'ai rencontré un problème lors du traitement de votre message.",
-               sender: 'ai',
-               timestamp: new Date(),
-            };
-            setMessages((prev) => [...prev, errorMessage]);
+         if (!reader) {
+            throw new Error('Impossible de lire la réponse');
          }
 
-         setIsLoading(false);
+         let buffer = '';
+
+         while (true) {
+            const { value, done } = await reader.read();
+
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+
+            // Traiter chaque ligne complète
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || ''; // Garder la ligne incomplète
+
+            for (const line of lines) {
+               if (line.startsWith('data: ')) {
+                  const data = line.slice(6); // Retirer "data: "
+
+                  if (data.trim() === '') continue;
+
+                  try {
+                     const parsed = JSON.parse(data);
+
+                     if (parsed.type === 'chunk') {
+                        // Mettre à jour le message AI avec le nouveau contenu
+                        setMessages((prev) =>
+                           prev.map((msg) =>
+                              msg.id === aiMessageId
+                                 ? {
+                                      ...msg,
+                                      content: msg.content + parsed.content,
+                                   }
+                                 : msg
+                           )
+                        );
+                     } else if (parsed.type === 'done') {
+                        // Streaming terminé
+                        setIsLoading(false);
+                        break;
+                     } else if (parsed.type === 'error') {
+                        throw new Error(parsed.error);
+                     }
+                  } catch (parseError) {
+                     console.error('Erreur de parsing:', parseError);
+                  }
+               }
+            }
+         }
       } catch (error) {
          console.error("Erreur lors de l'envoi du message:", error);
 
-         // Message d'erreur pour l'utilisateur
-         const errorMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            content:
-               'Désolé, je ne peux pas répondre en ce moment. Veuillez réessayer plus tard.',
-            sender: 'ai',
-            timestamp: new Date(),
-         };
-         setMessages((prev) => [...prev, errorMessage]);
+         // Remplacer le message AI vide par un message d'erreur
+         setMessages((prev) =>
+            prev.map((msg) =>
+               msg.id === aiMessageId
+                  ? {
+                       ...msg,
+                       content:
+                          'Désolé, je ne peux pas répondre en ce moment. Veuillez réessayer plus tard.',
+                    }
+                  : msg
+            )
+         );
          setIsLoading(false);
       }
    };
