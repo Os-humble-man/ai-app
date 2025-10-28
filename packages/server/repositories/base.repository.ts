@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { PrismaClient, Prisma } from '@prisma/client';
-import { DatabaseQueryError } from '../utils/DatabaseQueryError';
+import { DatabaseQueryError } from '../utils/errors/DatabaseQueryError';
 import type {
    PaginatedResult,
    PaginationOptions,
