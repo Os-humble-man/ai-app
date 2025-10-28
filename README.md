@@ -1,71 +1,71 @@
 # 🤖 AI Chat Application
 
-Une application de chat IA moderne et performante avec interface en temps réel et streaming de réponses.
+A modern and performant AI chat application with real-time interface and response streaming.
 
-## 📋 Table des matières
+## 📋 Table of Contents
 
-- [Vue d'ensemble](#vue-densemble)
-- [Fonctionnalités](#fonctionnalités)
-- [Technologies utilisées](#technologies-utilisées)
+- [Overview](#overview)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
 - [Architecture](#architecture)
 - [Installation](#installation)
 - [Configuration](#configuration)
-- [Utilisation](#utilisation)
-- [Scripts disponibles](#scripts-disponibles)
-- [Structure du projet](#structure-du-projet)
-- [Compétences démontrées](#compétences-démontrées)
+- [Usage](#usage)
+- [Available Scripts](#available-scripts)
+- [Project Structure](#project-structure)
+- [Skills Demonstrated](#skills-demonstrated)
 
-## 🎯 Vue d'ensemble
+## 🎯 Overview
 
-Application full-stack de chat IA démontrant des compétences avancées en développement web moderne. L'application permet aux utilisateurs de converser avec une IA (GPT-4o-mini) via une interface intuitive avec streaming des réponses en temps réel.
+Full-stack AI chat application demonstrating advanced skills in modern web development. The application allows users to converse with an AI (GPT-4o-mini) through an intuitive interface with real-time response streaming.
 
-### Points forts techniques
+### Technical Highlights
 
-- **Architecture Monorepo** avec gestion des workspaces
-- **Streaming en temps réel** des réponses de l'IA
-- **Gestion d'état** sophistiquée côté client
-- **API RESTful** avec Express.js
-- **Interface utilisateur moderne** avec React et TailwindCSS
-- **TypeScript** pour la sécurité des types
-- **Optimisations de performance** avec Vite
+- **Monorepo Architecture** with workspace management
+- **Real-time Streaming** of AI responses
+- **Sophisticated State Management** on client-side
+- **RESTful API** with Express.js
+- **Modern User Interface** with React and TailwindCSS
+- **TypeScript** for type safety
+- **Performance Optimizations** with Vite
 
-## ✨ Fonctionnalités
+## ✨ Features
 
-- 💬 **Chat en temps réel** avec streaming des réponses
-- 🔄 **Historique de conversation** maintenu par session
-- 🎨 **Interface responsive** et moderne
-- ⚡ **Performance optimisée** avec chargement progressif
-- 🎯 **Gestion d'erreurs** robuste
-- 🔒 **Variables d'environnement** pour la sécurité
-- 📱 **Design adaptatif** pour mobile et desktop
+- 💬 **Real-time Chat** with response streaming
+- 🔄 **Conversation History** maintained per session
+- 🎨 **Responsive Interface** and modern design
+- ⚡ **Optimized Performance** with progressive loading
+- 🎯 **Robust Error Handling**
+- 🔒 **Environment Variables** for security
+- 📱 **Adaptive Design** for mobile and desktop
 
-## 🛠 Technologies utilisées
+## 🛠 Technologies Used
 
 ### Frontend
 
-- **React 19** - Bibliothèque UI avec les dernières fonctionnalités
-- **TypeScript** - Typage statique pour la robustesse du code
-- **Vite** - Build tool ultra-rapide
-- **TailwindCSS 4** - Framework CSS utilitaire moderne
-- **Radix UI** - Composants accessibles et personnalisables
-- **Lucide React** - Icônes modernes
+- **React 19** - UI library with latest features
+- **TypeScript** - Static typing for code robustness
+- **Vite** - Ultra-fast build tool
+- **TailwindCSS 4** - Modern utility-first CSS framework
+- **Radix UI** - Accessible and customizable components
+- **Lucide React** - Modern icons
 
 ### Backend
 
-- **Node.js** avec **Express 5** - Serveur web performant
-- **OpenAI SDK** - Intégration avec l'API OpenRouter
-- **TypeScript** - Type-safety côté serveur
-- **Zod** - Validation de schémas
-- **Dotenv** - Gestion des variables d'environnement
+- **Node.js** with **Express 5** - High-performance web server
+- **OpenAI SDK** - Integration with OpenRouter API
+- **TypeScript** - Server-side type safety
+- **Zod** - Schema validation
+- **Dotenv** - Environment variable management
 
-### Outils de développement
+### Development Tools
 
-- **Bun** - Runtime JavaScript rapide et package manager
-- **Prettier** - Formatage automatique du code
-- **ESLint** - Linting pour la qualité du code
-- **Husky** - Git hooks pour automatisation
-- **lint-staged** - Linting des fichiers stagés
-- **Concurrently** - Exécution parallèle du client et serveur
+- **Bun** - Fast JavaScript runtime and package manager
+- **Prettier** - Automatic code formatting
+- **ESLint** - Code quality linting
+- **Husky** - Git hooks for automation
+- **lint-staged** - Linting of staged files
+- **Concurrently** - Parallel execution of client and server
 
 ## 🏗 Architecture
 
@@ -74,70 +74,70 @@ Application full-stack de chat IA démontrant des compétences avancées en dév
 ```
 ai-app/
 ├── packages/
-│   ├── client/          # Application React
+│   ├── client/          # React Application
 │   │   ├── src/
 │   │   │   ├── components/
-│   │   │   │   ├── chat-box.tsx      # Composant principal du chat
-│   │   │   │   ├── message-list.tsx  # Affichage des messages
-│   │   │   │   ├── ui/               # Composants UI réutilisables
-│   │   │   │   ├── layout/           # Composants de layout
-│   │   │   │   └── shared/           # Composants partagés
+│   │   │   │   ├── chat-box.tsx      # Main chat component
+│   │   │   │   ├── message-list.tsx  # Message display
+│   │   │   │   ├── ui/               # Reusable UI components
+│   │   │   │   ├── layout/           # Layout components
+│   │   │   │   └── shared/           # Shared components
 │   │   │   ├── hooks/                # Custom React hooks
-│   │   │   ├── lib/                  # Utilitaires
-│   │   │   └── App.tsx               # Composant racine
+│   │   │   ├── lib/                  # Utilities
+│   │   │   └── App.tsx               # Root component
 │   │   └── package.json
 │   │
-│   └── server/          # API Express
+│   └── server/          # Express API
 │       ├── controllers/
-│       │   └── chat.controller.ts    # Contrôleur de chat
+│       │   └── chat.controller.ts    # Chat controller
 │       ├── services/
-│       │   └── chat.service.ts       # Logique métier
+│       │   └── chat.service.ts       # Business logic
 │       ├── repositories/
-│       │   └── conversation.repository.ts  # Gestion des données
+│       │   └── conversation.repository.ts  # Data management
 │       ├── routes/
-│       │   └── routes.ts             # Définition des routes
-│       ├── index.ts                  # Point d'entrée serveur
+│       │   └── routes.ts             # Route definitions
+│       ├── index.ts                  # Server entry point
 │       └── package.json
 │
-├── index.ts             # Script de démarrage concurrent
-└── package.json         # Configuration du workspace racine
+├── index.ts             # Concurrent startup script
+└── package.json         # Root workspace configuration
 ```
 
-### Flux de données
+### Data Flow
 
-1. **Client** → Envoi du message utilisateur via fetch API
-2. **Server** → Réception et traitement de la requête
-3. **OpenRouter API** → Appel à GPT-4o-mini avec streaming
-4. **Server** → Streaming des chunks de réponse via Server-Sent Events
-5. **Client** → Réception et affichage progressif de la réponse
+1. **Client** → Send user message via fetch API
+2. **Server** → Receive and process request
+3. **OpenRouter API** → Call to GPT-4o-mini with streaming
+4. **Server** → Stream response chunks via Server-Sent Events
+5. **Client** → Receive and progressively display response
 
 ## 📦 Installation
 
-### Prérequis
+### Prerequisites
 
-- **Bun** >= 1.3.0 (ou Node.js >= 18)
-- Clé API OpenRouter (ou OpenAI)
+- **Bun** >= 1.3.0 (or Node.js >= 18)
+- OpenRouter API key (or OpenAI)
 
-### Installation de Bun (si nécessaire)
+### Installing Bun (if necessary)
 
 ```bash
 curl -fsSL https://bun.sh/install | bash
 ```
 
-### Installation des dépendances
+### Installing Dependencies
 
 ```bash
-# Cloner le repository
+# Clone the repository
 git clone <repository-url>
 cd ai-app
 
-# Installer toutes les dépendances (workspaces)
+# Install all dependencies (workspaces)
 bun install
 ```
 
 ## ⚙️ Configuration
 
-Créer un fichier `.env` à la racine du projet :
+Create a `.env` file at the root of the project:
 
 ```env
 # API Configuration
@@ -147,77 +147,77 @@ OPENROUTER_API_KEY=your_api_key_here
 PORT=3000
 ```
 
-### Obtenir une clé API
+### Getting an API Key
 
-1. Créer un compte sur [OpenRouter](https://openrouter.ai/)
-2. Générer une clé API dans les paramètres
-3. Copier la clé dans le fichier `.env`
+1. Create an account on [OpenRouter](https://openrouter.ai/)
+2. Generate an API key in settings
+3. Copy the key into the `.env` file
 
-## 🚀 Utilisation
+## 🚀 Usage
 
-### Démarrage en mode développement
+### Starting in Development Mode
 
 ```bash
-# Démarrer client et serveur simultanément
+# Start client and server simultaneously
 bun run dev
 ```
 
-Cette commande lance :
-- **Serveur Express** sur `http://localhost:3000`
-- **Client Vite** sur `http://localhost:5173`
+This command launches:
+- **Express Server** on `http://localhost:3000`
+- **Vite Client** on `http://localhost:5173`
 
-### Accès à l'application
+### Accessing the Application
 
-Ouvrir le navigateur et naviguer vers `http://localhost:5173`
+Open your browser and navigate to `http://localhost:5173`
 
-### Build de production
+### Production Build
 
 ```bash
-# Build du client
+# Build the client
 cd packages/client
 bun run build
 
-# Les fichiers de production seront dans packages/client/dist/
+# Production files will be in packages/client/dist/
 ```
 
-## 📜 Scripts disponibles
+## 📜 Available Scripts
 
-### Racine du projet
+### Project Root
 
 ```bash
-bun run dev      # Démarre client et serveur en mode dev
-bun run format   # Formate le code avec Prettier
+bun run dev      # Start client and server in dev mode
+bun run format   # Format code with Prettier
 ```
 
 ### Client (`packages/client`)
 
 ```bash
-bun run dev      # Démarre le serveur de dev Vite
-bun run build    # Build de production
-bun run lint     # Linting avec ESLint
-bun run preview  # Prévisualisation du build
+bun run dev      # Start Vite dev server
+bun run build    # Production build
+bun run lint     # Lint with ESLint
+bun run preview  # Preview the build
 ```
 
-### Serveur (`packages/server`)
+### Server (`packages/server`)
 
 ```bash
-bun run dev      # Démarre avec hot-reload
-bun run start    # Démarre le serveur
+bun run dev      # Start with hot-reload
+bun run start    # Start the server
 ```
 
-## 📂 Structure du projet
+## 📂 Project Structure
 
 ```
 ai-app/
 ├── .husky/                 # Git hooks
 ├── packages/
 │   ├── client/
-│   │   ├── public/         # Assets statiques
+│   │   ├── public/         # Static assets
 │   │   ├── src/
 │   │   │   ├── assets/     # Images, SVG
-│   │   │   ├── components/ # Composants React
+│   │   │   ├── components/ # React components
 │   │   │   ├── hooks/      # Custom hooks
-│   │   │   ├── lib/        # Utilitaires
+│   │   │   ├── lib/        # Utilities
 │   │   │   ├── App.tsx
 │   │   │   ├── App.css
 │   │   │   └── main.tsx
@@ -227,94 +227,94 @@ ai-app/
 │   │   └── package.json
 │   │
 │   └── server/
-│       ├── controllers/    # Contrôleurs Express
-│       ├── services/       # Logique métier
-│       ├── repositories/   # Couche données
-│       ├── routes/         # Définition routes API
+│       ├── controllers/    # Express controllers
+│       ├── services/       # Business logic
+│       ├── repositories/   # Data layer
+│       ├── routes/         # API route definitions
 │       ├── index.ts
 │       ├── tsconfig.json
 │       └── package.json
 │
 ├── .gitignore
-├── .prettierrc             # Configuration Prettier
-├── .lintstagedrc           # Configuration lint-staged
+├── .prettierrc             # Prettier configuration
+├── .lintstagedrc           # lint-staged configuration
 ├── bun.lock
-├── index.ts                # Point d'entrée principal
+├── index.ts                # Main entry point
 ├── package.json            # Workspace configuration
-├── tsconfig.json           # Configuration TypeScript racine
+├── tsconfig.json           # Root TypeScript configuration
 └── README.md
 ```
 
-## 💼 Compétences démontrées
+## 💼 Skills Demonstrated
 
-### Développement Frontend
+### Frontend Development
 
-- ✅ **React moderne** avec hooks et gestion d'état complexe
-- ✅ **TypeScript avancé** avec types personnalisés et génériques
-- ✅ **Architecture composants** modulaire et réutilisable
-- ✅ **UI/UX design** avec TailwindCSS et composants Radix UI
-- ✅ **Performance** avec optimisations React et Vite
-- ✅ **Streaming temps réel** avec ReadableStream API
+- ✅ **Modern React** with hooks and complex state management
+- ✅ **Advanced TypeScript** with custom types and generics
+- ✅ **Component Architecture** modular and reusable
+- ✅ **UI/UX Design** with TailwindCSS and Radix UI components
+- ✅ **Performance** with React and Vite optimizations
+- ✅ **Real-time Streaming** with ReadableStream API
 
-### Développement Backend
+### Backend Development
 
-- ✅ **API RESTful** avec Express.js
-- ✅ **Architecture en couches** (Controllers, Services, Repositories)
-- ✅ **Intégration API externe** (OpenAI/OpenRouter)
-- ✅ **Server-Sent Events** pour le streaming
-- ✅ **Gestion d'erreurs** robuste
-- ✅ **Configuration environnement** sécurisée
+- ✅ **RESTful API** with Express.js
+- ✅ **Layered Architecture** (Controllers, Services, Repositories)
+- ✅ **External API Integration** (OpenAI/OpenRouter)
+- ✅ **Server-Sent Events** for streaming
+- ✅ **Robust Error Handling**
+- ✅ **Secure Environment Configuration**
 
-### DevOps et outils
+### DevOps and Tools
 
-- ✅ **Monorepo** avec workspaces
-- ✅ **Git hooks** avec Husky
-- ✅ **Code quality** avec ESLint et Prettier
-- ✅ **TypeScript** full-stack
-- ✅ **Outils modernes** (Bun, Vite, Concurrently)
-- ✅ **Documentation** complète et professionnelle
+- ✅ **Monorepo** with workspaces
+- ✅ **Git Hooks** with Husky
+- ✅ **Code Quality** with ESLint and Prettier
+- ✅ **Full-stack TypeScript**
+- ✅ **Modern Tools** (Bun, Vite, Concurrently)
+- ✅ **Complete and Professional Documentation**
 
-### Bonnes pratiques
+### Best Practices
 
-- ✅ Séparation des préoccupations (SoC)
-- ✅ Code maintenable et évolutif
-- ✅ Typage fort avec TypeScript
-- ✅ Gestion d'erreurs appropriée
-- ✅ Structure de projet claire
-- ✅ Code formaté et linté automatiquement
-
----
-
-## 📝 Notes de développement
-
-### Choix techniques
-
-- **Bun** choisi pour ses performances exceptionnelles
-- **Monorepo** pour faciliter le partage de types entre client/serveur
-- **Streaming** pour une meilleure expérience utilisateur
-- **TailwindCSS** pour un développement UI rapide et cohérent
-- **Radix UI** pour l'accessibilité et la personnalisation
-
-### Améliorations futures possibles
-
-- [ ] Authentification utilisateur
-- [ ] Persistance des conversations en base de données
-- [ ] Support de plusieurs modèles d'IA
-- [ ] Mode sombre
-- [ ] Export des conversations
-- [ ] Tests unitaires et E2E
-- [ ] Déploiement CI/CD
-- [ ] Gestion des fichiers/images
-- [ ] Multi-langue (i18n)
+- ✅ Separation of Concerns (SoC)
+- ✅ Maintainable and scalable code
+- ✅ Strong typing with TypeScript
+- ✅ Appropriate error handling
+- ✅ Clear project structure
+- ✅ Automatically formatted and linted code
 
 ---
 
-## 📄 Licence
+## 📝 Development Notes
 
-Ce projet est un portfolio de démonstration de compétences en développement.
+### Technical Choices
 
-## 👤 Auteur
+- **Bun** chosen for its exceptional performance
+- **Monorepo** to facilitate type sharing between client/server
+- **Streaming** for better user experience
+- **TailwindCSS** for fast and consistent UI development
+- **Radix UI** for accessibility and customization
 
-Créé dans le cadre d'une démonstration de compétences techniques pour recruteurs.
+### Possible Future Improvements
 
-**Compétences clés** : React, TypeScript, Node.js, Express, API Integration, Monorepo, Modern Web Development
+- [ ] User authentication
+- [ ] Conversation persistence in database
+- [ ] Support for multiple AI models
+- [ ] Dark mode
+- [ ] Conversation export
+- [ ] Unit and E2E tests
+- [ ] CI/CD deployment
+- [ ] File/image handling
+- [ ] Multi-language support (i18n)
+
+---
+
+## 📄 License
+
+This project is a skill demonstration portfolio.
+
+## 👤 Author
+
+Created as part of a technical skills demonstration for recruiters.
+
+**Key Skills**: React, TypeScript, Node.js, Express, API Integration, Monorepo, Modern Web Development
