@@ -128,7 +128,7 @@ curl -fsSL https://bun.sh/install | bash
 
 ```bash
 # Cloner le repository
-git clone https://github.com/Os-humble-man/ai-app.git
+git clone <repository-url>
 cd ai-app
 
 # Installer toutes les dépendances (workspaces)
