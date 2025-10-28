@@ -1,7 +1,7 @@
 import {
    Asterisk,
    DatabaseBackup,
-   Edit,
+   // Edit,
    FileText,
    Folder,
    FolderHeart,
@@ -19,7 +19,7 @@ import {
    SidebarMenuButton,
    SidebarMenuItem,
 } from '../ui/sidebar';
-import { SearchForm } from '../search-form';
+// import { SearchForm } from '../search-form';
 import { cn } from '@/lib/utils';
 
 const navigationItems = [
@@ -107,32 +107,6 @@ export const AppSidebar = ({
                            </SidebarMenuButton>
                         </SidebarMenuItem>
                      ))}
-
-                     <div className="group-data-[collapsible=icon]:block hidden">
-                        {navigationItems.map((item) => (
-                           <SidebarMenuItem key={item.name}>
-                              <SidebarMenuButton
-                                 asChild
-                                 className={cn(
-                                    currentView === item.name.toLowerCase() &&
-                                       'bg-accent'
-                                 )}
-                                 tooltip={item.name}
-                              >
-                                 <p
-                                    onClick={() =>
-                                       onViewChange(item.name.toLowerCase())
-                                    }
-                                 >
-                                    <item.icon className="w-6 h-6" />
-                                    <span className="group-data-[collapsible=icon]:hidden">
-                                       {item.name}
-                                    </span>
-                                 </p>
-                              </SidebarMenuButton>
-                           </SidebarMenuItem>
-                        ))}
-                     </div>
                   </SidebarMenu>
                </SidebarGroupContent>
             </SidebarGroup>

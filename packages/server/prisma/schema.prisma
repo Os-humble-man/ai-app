@@ -1,0 +1,202 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  avatarUrl     String?   @map("avatar_url")
+  password      String? // Null if authentication is OAuth only
+  provider      String? // 'google', 'github', 'credentials'.
+  providerId    String? // OAuth provider user ID
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  settings      Json?
+
+  conversations Conversation[]
+  folders       Folder[]
+  templates     Template[]
+  userSettings  UserSettings?
+  plugins       Plugin[]
+  analytics     Analytics[]
+  notifications Notification[]
+  exports       Export[]
+
+  @@map("users")
+}
+
+model Conversation {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  title      String
+  model      String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  isFavorite Boolean  @default(false) @map("is_favorite")
+  folderId   String?  @map("folder_id")
+  tags       Json?
+  isPublic   Boolean  @default(false) @map("is_public")
+  shareId    String?  @unique @map("share_id")
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder    Folder?     @relation(fields: [folderId], references: [id])
+  messages  Message[]
+  shares    Share[]
+  exports   Export[]
+  analytics Analytics[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String   @map("conversation_id")
+  role           Role
+  content        String
+  modelUsed      String?  @map("model_used")
+  tokenCount     Int?     @map("token_count")
+  createdAt      DateTime @default(now()) @map("created_at")
+  metadata       Json?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  name      String
+  color     String?
+  parentId  String?  @map("parent_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent        Folder?        @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children      Folder[]       @relation("FolderHierarchy")
+  conversations Conversation[]
+
+  @@map("folders")
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  name        String
+  prompt      String
+  description String?
+  isPublic    Boolean  @default(false) @map("is_public")
+  tags        Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("templates")
+}
+
+model UserSettings {
+  userId           String   @id @map("user_id")
+  theme            Theme    @default(SYSTEM)
+  language         String   @default("fr")
+  defaultModel     String   @default("gpt-4o-mini") @map("default_model")
+  streamingEnabled Boolean  @default(true) @map("streaming_enabled")
+  notifications    Json?
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model Plugin {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  name      String
+  version   String
+  enabled   Boolean  @default(true)
+  config    Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("plugins")
+}
+
+model Analytics {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  conversationId String?  @map("conversation_id")
+  tokensUsed     Int      @map("tokens_used")
+  model          String
+  date           DateTime
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation Conversation? @relation(fields: [conversationId], references: [id])
+
+  @@map("analytics")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Export {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  conversationId String   @map("conversation_id")
+  format         String
+  url            String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("exports")
+}
+
+model Share {
+  id             String    @id @default(cuid())
+  conversationId String    @map("conversation_id")
+  shareId        String    @unique @map("share_id")
+  isPublic       Boolean   @default(false) @map("is_public")
+  expiresAt      DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("shares")
+}
+
+enum Role {
+  USER      @map("user")
+  ASSISTANT @map("assistant")
+  SYSTEM    @map("system")
+}
+
+enum Theme {
+  LIGHT  @map("light")
+  DARK   @map("dark")
+  SYSTEM @map("system")
+}

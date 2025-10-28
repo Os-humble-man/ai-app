@@ -21,7 +21,7 @@ export const ChatBox = () => {
       setInputValue('');
       setIsLoading(true);
 
-      // Créer immédiatement un message AI vide pour le streaming
+      // Create an empty AI message for streaming immediately
       const aiMessageId = (Date.now() + 1).toString();
       const initialAiMessage: Message = {
          id: aiMessageId,
@@ -32,7 +32,7 @@ export const ChatBox = () => {
       setMessages((prev) => [...prev, initialAiMessage]);
 
       try {
-         // Alternative avec fetch et ReadableStream
+         // Alternative with fetch and ReadableStream
          const response = await fetch('/api/chat/stream', {
             method: 'POST',
             headers: {
@@ -50,7 +50,7 @@ export const ChatBox = () => {
          const decoder = new TextDecoder();
 
          if (!reader) {
-            throw new Error('Impossible de lire la réponse');
+            throw new Error('Unable to read response body');
          }
 
          let buffer = '';
@@ -62,9 +62,9 @@ export const ChatBox = () => {
 
             buffer += decoder.decode(value, { stream: true });
 
-            // Traiter chaque ligne complète
+            // Process each complete line
             const lines = buffer.split('\n');
-            buffer = lines.pop() || ''; // Garder la ligne incomplète
+            buffer = lines.pop() || ''; // Keep the line incomplete
 
             for (const line of lines) {
                if (line.startsWith('data: ')) {
@@ -76,7 +76,7 @@ export const ChatBox = () => {
                      const parsed = JSON.parse(data);
 
                      if (parsed.type === 'chunk') {
-                        // Mettre à jour le message AI avec le nouveau contenu
+                        // Update the AI message with the new content
                         setMessages((prev) =>
                            prev.map((msg) =>
                               msg.id === aiMessageId
@@ -88,7 +88,7 @@ export const ChatBox = () => {
                            )
                         );
                      } else if (parsed.type === 'done') {
-                        // Streaming terminé
+                        // Streaming finished
                         setIsLoading(false);
                         break;
                      } else if (parsed.type === 'error') {
@@ -101,16 +101,16 @@ export const ChatBox = () => {
             }
          }
       } catch (error) {
-         console.error("Erreur lors de l'envoi du message:", error);
+         console.error('Error sending message:', error);
 
-         // Remplacer le message AI vide par un message d'erreur
+         // Replace the empty AI message with an error message
          setMessages((prev) =>
             prev.map((msg) =>
                msg.id === aiMessageId
                   ? {
                        ...msg,
                        content:
-                          'Désolé, je ne peux pas répondre en ce moment. Veuillez réessayer plus tard.',
+                          "Sorry, I can't respond right now. Please try again later.",
                     }
                   : msg
             )
@@ -144,7 +144,7 @@ export const ChatBox = () => {
             )}
          </div>
 
-         <div className="absolute bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-sm ">
+         <div className="absolute bottom-0 left-0 right-0 p-6  backdrop-blur-sm ">
             <div className="relative max-w-full">
                <Textarea
                   value={inputValue}

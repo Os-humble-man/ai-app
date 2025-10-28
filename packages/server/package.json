@@ -5,16 +5,23 @@
    "private": true,
    "scripts": {
       "start": "bun run index.ts",
-      "dev": "bun --watch index.ts"
+      "dev": "bun --watch index.ts",
+      "prisma:dev": "bunx --dotenv .env prisma migrate dev",
+      "prisma:studio": "bunx --dotenv .env prisma studio",
+      "prisma:generate": "bunx --dotenv .env prisma generate"
    },
    "devDependencies": {
-      "@types/bun": "latest"
+      "@types/bun": "latest",
+      "dotenv-cli": "^10.0.0"
    },
    "peerDependencies": {
       "typescript": "^5"
    },
    "dependencies": {
+      "@prisma/client": "^6.18.0",
+      "@prisma/extension-accelerate": "^2.0.2",
       "openai": "^6.5.0",
+      "prisma": "^6.18.0",
       "zod": "^4.1.12"
    }
 }
