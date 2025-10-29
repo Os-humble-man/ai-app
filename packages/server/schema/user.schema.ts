@@ -20,7 +20,7 @@ export const UserSchema = {
    },
    userIdParam: {
       params: z.object({
-         id: z.uuid('Invalid user ID'),
+         id: z.string('Invalid user ID'),
       }),
    },
    userEmailParam: {
