@@ -21,4 +21,23 @@ export class UserRepository extends BaseRepository {
          where: { id: userId },
       });
    }
+
+   async findUserByEmail(email: string) {
+      return this.prisma.user.findUnique({
+         where: { email },
+      });
+   }
+
+   async updateUserPassword(userId: string, newPasswordHash: string) {
+      return this.prisma.user.update({
+         where: { id: userId },
+         data: { password: newPasswordHash },
+      });
+   }
+
+   async deleteUser(userId: string) {
+      return this.prisma.user.delete({
+         where: { id: userId },
+      });
+   }
 }

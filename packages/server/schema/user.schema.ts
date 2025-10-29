@@ -10,10 +10,28 @@ export const UserSchema = {
          password: z.string().min(6, 'Password too short'),
       }),
    },
-   loginUser: {
+   updatePassword: {
       body: z.object({
-         email: z.email('Invalid email'),
          password: z.string().min(6, 'Password too short'),
       }),
+      params: z.object({
+         id: z.uuid('Invalid user ID'),
+      }),
    },
+   userIdParam: {
+      params: z.object({
+         id: z.uuid('Invalid user ID'),
+      }),
+   },
+   userEmailParam: {
+      params: z.object({
+         email: z.email('Invalid email'),
+      }),
+   },
+   // loginUser: {
+   //    body: z.object({
+   //       email: z.email('Invalid email'),
+   //       password: z.string().min(6, 'Password too short'),
+   //    }),
+   // },
 };

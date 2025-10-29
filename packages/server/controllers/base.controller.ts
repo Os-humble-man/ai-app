@@ -6,6 +6,7 @@ import type {
 } from '../utils/pagination';
 import { ApplicationError } from '../utils/errors/ApplicationError';
 import { DatabaseQueryError } from '../utils/errors/DatabaseQueryError';
+import { HttpStatus } from '../utils/HttpStatus';
 
 /**
  * Standard API response
@@ -16,18 +17,6 @@ export interface ApiResponse<T> {
    message?: string;
    pagination?: any;
    error?: { code?: string; message?: string };
-}
-
-/**
- * HTTP Status codes
- */
-export enum HttpStatus {
-   OK = 200,
-   CREATED = 201,
-   NO_CONTENT = 204,
-   BAD_REQUEST = 400,
-   NOT_FOUND = 404,
-   INTERNAL_ERROR = 500,
 }
 
 /**

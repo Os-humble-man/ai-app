@@ -12,6 +12,8 @@
    },
    "devDependencies": {
       "@types/bun": "latest",
+      "@types/swagger-jsdoc": "^6.0.4",
+      "@types/swagger-ui-express": "^4.1.8",
       "dotenv-cli": "^10.0.0"
    },
    "peerDependencies": {
@@ -23,10 +25,13 @@
       "@prisma/extension-accelerate": "^2.0.2",
       "@types/bcrypt": "^6.0.0",
       "bcrypt": "^6.0.0",
+      "express": "^5.1.0",
       "inversify": "^7.10.4",
       "openai": "^6.5.0",
       "prisma": "^6.18.0",
       "reflect-metadata": "^0.2.2",
+      "swagger-jsdoc": "^6.2.8",
+      "swagger-ui-express": "^5.0.1",
       "zod": "^4.1.12"
    }
 }
