@@ -11,12 +11,12 @@ export class UserRepository extends BaseRepository {
       return this.prisma.user.create({
          data: {
             email: user.email,
-            passwordHash: user.passwordHash,
+            password: user.passwordHash,
             name: user.name,
          },
       });
    }
-   async findUserById(userId: number) {
+   async findUserById(userId: string) {
       return this.prisma.user.findUnique({
          where: { id: userId },
       });

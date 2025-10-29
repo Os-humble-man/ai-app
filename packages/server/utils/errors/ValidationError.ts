@@ -1,3 +1,4 @@
+import { HttpStatus } from '../HttpStatus';
 import { ApplicationError } from './ApplicationError';
 
 /**
@@ -5,6 +6,6 @@ import { ApplicationError } from './ApplicationError';
  */
 export class ValidationError extends ApplicationError {
    constructor(message = 'Validation failed', details?: any) {
-      super(message, 400, 'VALIDATION_ERROR', details);
+      super(message, HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR', details);
    }
 }

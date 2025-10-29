@@ -1,3 +1,5 @@
+import { HttpStatus } from '../HttpStatus';
+
 /**
  * Base class for all custom application errors.
  * Provides a unified structure for error handling and API responses.
@@ -11,7 +13,7 @@ export class ApplicationError extends Error {
 
    constructor(
       message: string,
-      statusCode = 500,
+      statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
       code = 'INTERNAL_ERROR',
       details?: any
    ) {

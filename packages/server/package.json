@@ -8,7 +8,7 @@
       "dev": "bun --watch index.ts",
       "prisma:dev": "bunx --dotenv .env prisma migrate dev",
       "prisma:studio": "bunx --dotenv .env prisma studio",
-      "prisma:generate": "bunx --dotenv .env prisma generate"
+      "prisma:generate": "bunx prisma generate"
    },
    "devDependencies": {
       "@types/bun": "latest",
@@ -18,8 +18,11 @@
       "typescript": "^5"
    },
    "dependencies": {
+      "@prisma/adapter-libsql": "^6.18.0",
       "@prisma/client": "^6.18.0",
       "@prisma/extension-accelerate": "^2.0.2",
+      "@types/bcrypt": "^6.0.0",
+      "bcrypt": "^6.0.0",
       "inversify": "^7.10.4",
       "openai": "^6.5.0",
       "prisma": "^6.18.0",

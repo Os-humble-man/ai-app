@@ -1,11 +1,11 @@
 import { injectable } from 'inversify';
-import { PrismaClient, Prisma } from '@prisma/client';
 import { DatabaseQueryError } from '../utils/errors/DatabaseQueryError';
 import type {
    PaginatedResult,
    PaginationOptions,
    SearchOptions,
 } from '../utils/pagination';
+import { Prisma, PrismaClient } from '../generated/prisma/client';
 
 /** Base repository class
  * Base repository using Prisma ORM.

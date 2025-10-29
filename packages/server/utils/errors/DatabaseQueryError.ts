@@ -1,3 +1,4 @@
+import { HttpStatus } from '../HttpStatus';
 import { ApplicationError } from './ApplicationError';
 
 /**
@@ -20,7 +21,7 @@ export class DatabaseQueryError extends ApplicationError {
       parameters?: any[],
       originalError?: any
    ) {
-      super(message, 500, code, details);
+      super(message, HttpStatus.INTERNAL_SERVER_ERROR, code, details);
       this.query = query;
       this.parameters = parameters;
       this.originalError = originalError;
