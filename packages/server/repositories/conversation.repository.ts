@@ -6,8 +6,6 @@ interface Message {
    content: string;
 }
 
-const conversations = new Map<string, Message[]>();
-
 export class ConversationRepository extends BaseRepository {
    async create(userId: string, title: string, model: string) {
       return this.prisma.conversation.create({
@@ -18,6 +16,7 @@ export class ConversationRepository extends BaseRepository {
          },
       });
    }
+
    async addMessage(conversationId: string, role: Role, content: string) {
       return this.prisma.message.create({
          data: { conversationId, role, content },
@@ -27,12 +26,27 @@ export class ConversationRepository extends BaseRepository {
    async findById(conversationId: string) {
       return this.prisma.conversation.findUnique({
          where: { id: conversationId },
+         include: {
+            messages: {
+               orderBy: {
+                  createdAt: 'asc',
+               },
+            },
+         },
       });
    }
 
    async findByUserId(userId: string) {
       return this.prisma.conversation.findMany({
          where: { userId },
+         include: {
+            messages: {
+               orderBy: {
+                  createdAt: 'asc',
+               },
+               take: 1, // Pour optimiser les performances
+            },
+         },
       });
    }
 
@@ -42,24 +56,62 @@ export class ConversationRepository extends BaseRepository {
       });
    }
 
-   async getLastResponseId(conversationId: string): Promise<string | null> {
-      return this.prisma.conversation
-         .findUnique({
-            where: { id: conversationId },
-            include: { messages: true },
-         })
-         .then((conversation) => {
-            const messages = conversation?.messages;
-            if (!messages || messages.length === 0) return null;
-            const last = messages[messages.length - 1];
-            return last?.id ?? null;
-         });
+   async getConversationMessages(conversationId: string): Promise<Message[]> {
+      const conversation = await this.prisma.conversation.findUnique({
+         where: { id: conversationId },
+         include: {
+            messages: {
+               orderBy: {
+                  createdAt: 'asc',
+               },
+            },
+         },
+      });
+
+      if (!conversation?.messages) {
+         return [];
+      }
+
+      // Convertir les messages au format attendu par le service
+      return conversation.messages.map((msg) => ({
+         role: msg.role.toLowerCase() as 'user' | 'assistant',
+         content: msg.content,
+      }));
    }
 
-   async setLastResponseId(conversationId: string, messageId: string) {
-      return this.prisma.conversation.update({
+   async saveConversationMessages(conversationId: string, messages: Message[]) {
+      // Supprimer les messages existants pour cette conversation
+      await this.prisma.message.deleteMany({
+         where: { conversationId },
+      });
+
+      // Recréer tous les messages
+      for (const message of messages) {
+         await this.prisma.message.create({
+            data: {
+               conversationId,
+               role: message.role.toUpperCase() as Role,
+               content: message.content,
+            },
+         });
+      }
+   }
+
+   async getConversationTitle(conversationId: string): Promise<string | null> {
+      const conversation = await this.prisma.conversation.findUnique({
          where: { id: conversationId },
-         data: { id: messageId },
+         select: { title: true },
+      });
+      return conversation?.title || null;
+   }
+
+   async setConversationTitle(
+      conversationId: string,
+      title: string
+   ): Promise<void> {
+      await this.prisma.conversation.update({
+         where: { id: conversationId },
+         data: { title },
       });
    }
 

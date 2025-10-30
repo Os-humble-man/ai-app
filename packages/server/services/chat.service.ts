@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
-import { conversationRepository } from '../repositories/conversation.repository';
+import { ConversationRepository } from '../repositories/conversation.repository';
+import { inject } from 'inversify';
 
 interface ChatResponse {
    id: string;
@@ -11,50 +12,69 @@ const openai = new OpenAI({
    baseURL: process.env.OPENROUTER_BASE_URL,
 });
 
-export const chatService = {
+export class ChatService {
+   constructor(
+      @inject('ConversationRepository')
+      private conversationRepository: ConversationRepository
+   ) {}
+
    async generateConversationTitle(
       conversationId: string,
       messages: any[]
    ): Promise<string> {
       const existingTitle =
-         conversationRepository.getConversationTitle(conversationId);
+         await this.conversationRepository.getConversationTitle(conversationId);
       if (existingTitle) {
          return existingTitle;
       }
 
+      // Only generate a title after at least 2 messages (user + assistant)
+      if (messages.length < 2) {
+         return 'Nouvelle conversation';
+      }
+
       const contextMessages = messages.slice(0, 4);
-      const titlePrompt = `Generate a concise and descriptive title for the following conversation between a user and an AI assistant. The title should capture the main topic discussed. Respond with only the title, no additional text.
+      const titlePrompt = `Génère un titre concis et descriptif pour la conversation suivante entre un utilisateur et un assistant IA. Le titre doit capturer le sujet principal discuté. Réponds uniquement avec le titre, sans texte supplémentaire.
 
 Conversation:
 ${contextMessages.map((msg) => `${msg.role}: ${msg.content}`).join('\n')}
 Titre:`;
+
       try {
          const response = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
             messages: [{ role: 'user', content: titlePrompt }],
-            temperature: 0.2,
-            max_tokens: 100,
+            temperature: 0.3,
+            max_tokens: 50,
          });
 
-         const title = response.choices[0]?.message?.content || '';
-         conversationRepository.setConversationTitle(conversationId, title);
+         const title =
+            response.choices[0]?.message?.content?.trim() ||
+            'Nouvelle conversation';
+
+         await this.conversationRepository.setConversationTitle(
+            conversationId,
+            title
+         );
          return title;
       } catch (error) {
          console.error('Error generating conversation title:', error);
-         throw new Error('Failed to generate conversation title');
+         return 'Nouvelle conversation';
       }
-   },
+   }
 
    async sendMessage(
       prompt: string,
       conversationId: string
    ): Promise<ChatResponse> {
       let messages =
-         conversationRepository.getLastResponseId(conversationId) || [];
+         await this.conversationRepository.getConversationMessages(
+            conversationId
+         );
 
       const isNewConversation = messages.length === 0;
 
-      // Add the user's new message to the conversation
+      // Add the user's new message
       messages.push({ role: 'user', content: prompt });
 
       const response = await openai.chat.completions.create({
@@ -66,14 +86,17 @@ Titre:`;
 
       const assistantMessage = response.choices[0]?.message?.content || '';
 
-      // Add the assistant's response to the conversation
+      // Add the assistant's response
       messages.push({ role: 'assistant', content: assistantMessage });
 
-      // Update conversation history
-      conversationRepository.setLastResponseId(conversationId, messages);
+      // Update the conversation history
+      await this.conversationRepository.saveConversationMessages(
+         conversationId,
+         messages
+      );
 
-      if (isNewConversation && messages.length > 2) {
-         // Generate and set conversation title for new conversations
+      // Generate a title for new conversations
+      if (isNewConversation && messages.length >= 2) {
          await this.generateConversationTitle(conversationId, messages);
       }
 
@@ -82,18 +105,20 @@ Titre:`;
          id: response.id,
          message: assistantMessage,
       };
-   },
+   }
 
    async *sendMessageStream(
       prompt: string,
       conversationId: string
    ): AsyncGenerator<{ id: string; content: string; done: boolean }> {
       let messages =
-         conversationRepository.getLastResponseId(conversationId) || [];
+         await this.conversationRepository.getConversationMessages(
+            conversationId
+         );
 
       const isNewConversation = messages.length === 0;
 
-      // Add the user's new message to the conversation
+      // Add the user's new message
       messages.push({ role: 'user', content: prompt });
 
       const stream = await openai.chat.completions.create({
@@ -124,12 +149,16 @@ Titre:`;
          }
       }
 
-      // Add the complete assistant's response to the conversation
+      // Add the assistant's full response
       messages.push({ role: 'assistant', content: fullResponse });
 
-      // Update conversation history
-      conversationRepository.setLastResponseId(conversationId, messages);
+      // Update the conversation history
+      await this.conversationRepository.saveConversationMessages(
+         conversationId,
+         messages
+      );
 
+      // Generate a title for new conversations
       if (isNewConversation && messages.length >= 2) {
          await this.generateConversationTitle(conversationId, messages);
       }
@@ -142,5 +171,5 @@ Titre:`;
          content: '',
          done: true,
       };
-   },
-};
+   }
+}
