@@ -84,6 +84,8 @@ Titre:`;
          max_tokens: 100,
       });
 
+      console.log(response);
+
       const assistantMessage = response.choices[0]?.message?.content || '';
 
       // Add the assistant's response

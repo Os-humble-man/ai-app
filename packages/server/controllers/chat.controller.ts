@@ -1,67 +1,60 @@
-import z from 'zod';
-import type { Request, Response } from 'express';
-import { chatService } from '../services/chat.service';
+import type { NextFunction, Request, Response } from 'express';
+import { ChatService } from '../services/chat.service';
+import { BaseController } from './base.controller';
+import { inject } from 'inversify';
 
-const ConversationSchema = z.object({
-   conversationId: z.string().uuid().optional(),
-   prompt: z
-      .string()
-      .trim()
-      .min(1, 'Prompt cannot be empty')
-      .max(1000, 'Prompt is too long'),
-});
+export class ChatController extends BaseController {
+   constructor(@inject('ChatService') private chatService: ChatService) {
+      super();
+   }
 
-export const chatController = {
-   async handleMessage(req: Request, res: Response) {
+   handleMessage = async (req: Request, res: Response, next: NextFunction) => {
+      console.log('db error here');
       const { prompt, conversationId } = req.body;
-      const result = ConversationSchema.safeParse(req.body);
-      if (!result.success) {
-         return res.status(400).json({ errors: result.error.format() });
-      }
 
+      this.handleRequest(req, res, next, async () => {
+         // return this.chatService.sendMessage(prompt, conversationId!);
+      });
+   };
+
+   handleStreamMessage = async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+   ) => {
       try {
-         const assistantMessage = await chatService.sendMessage(
-            prompt,
-            conversationId
-         );
+         console.log('in this function');
+         const { prompt, conversationId } = req.body;
 
-         res.json({ message: assistantMessage });
-      } catch (error) {
-         console.error('Error calling OpenAI:', error);
-         res.status(500).json({ error: 'Failed to get response from AI' });
-      }
-   },
-
-   async handleStreamMessage(req: Request, res: Response) {
-      const { prompt, conversationId } = req.body;
-      const result = ConversationSchema.safeParse(req.body);
-      if (!result.success) {
-         return res.status(400).json({ errors: result.error.format() });
-      }
-
-      try {
-         // Set headers for Server-Sent Events
          res.writeHead(200, {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
             Connection: 'keep-alive',
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Cache-Control, Content-Type',
+            'Transfer-Encoding': 'chunked',
          });
 
-         // Send initial connection event
-         res.write('data: {"type":"connected"}\n\n');
+         res.write('event: connected\ndata: {"type":"connected"}\n\n');
 
-         const stream = chatService.sendMessageStream(prompt, conversationId);
+         const stream = this.chatService.sendMessageStream(
+            prompt,
+            conversationId || this.generateConversationId()
+         );
 
          for await (const chunk of stream) {
-            const data = JSON.stringify({
+            const eventData = {
                type: chunk.done ? 'done' : 'chunk',
                id: chunk.id,
                content: chunk.content,
-            });
+               done: chunk.done,
+            };
 
-            res.write(`data: ${data}\n\n`);
+            res.write(`data: ${JSON.stringify(eventData)}\n\n`);
+
+            if (typeof (res as any).flush === 'function') {
+               (res as any).flush();
+            }
 
             if (chunk.done) {
                break;
@@ -69,14 +62,74 @@ export const chatController = {
          }
 
          res.end();
-      } catch (error) {
+      } catch (error: any) {
          console.error('Error in streaming:', error);
-         const errorData = JSON.stringify({
+
+         if (!res.headersSent) {
+            res.writeHead(500, {
+               'Content-Type': 'text/event-stream',
+               'Cache-Control': 'no-cache',
+               Connection: 'keep-alive',
+            });
+         }
+
+         const errorData = {
             type: 'error',
             error: 'Failed to get response from AI',
-         });
-         res.write(`data: ${errorData}\n\n`);
+            details: error.message,
+         };
+
+         res.write(`data: ${JSON.stringify(errorData)}\n\n`);
          res.end();
+
+         next(error);
       }
-   },
-};
+   };
+
+   // Méthode pour récupérer l'historique des conversations
+   getConversations = async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+   ) => {
+      this.handleRequest(req, res, next, async () => {
+         // Implémentez cette méthode dans votre service si nécessaire
+         // return this.chatService.getConversations(req.user.id);
+         throw new Error('Not implemented');
+      });
+   };
+
+   // Méthode pour récupérer une conversation spécifique
+   getConversation = async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+   ) => {
+      const { id } = req.params;
+
+      this.handleRequest(req, res, next, async () => {
+         // Implémentez cette méthode dans votre service si nécessaire
+         // return this.chatService.getConversation(id, req.user.id);
+         throw new Error('Not implemented');
+      });
+   };
+
+   // Méthode pour supprimer une conversation
+   deleteConversation = async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+   ) => {
+      const { id } = req.params;
+
+      this.handleRequest(req, res, next, async () => {
+         // Implémentez cette méthode dans votre service si nécessaire
+         // return this.chatService.deleteConversation(id, req.user.id);
+         throw new Error('Not implemented');
+      });
+   };
+
+   private generateConversationId(): string {
+      return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+   }
+}

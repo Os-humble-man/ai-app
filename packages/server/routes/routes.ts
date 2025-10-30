@@ -11,7 +11,7 @@ router.get('/api/hello', (req: Request, res: Response) => {
    res.json({ message: 'Hello World From server' });
 });
 
-router.post('/api/chat', chatController.handleMessage);
-router.post('/api/chat/stream', chatController.handleStreamMessage);
+// router.post('/api/chat', chatController.handleMessage);
+// router.post('/api/chat/stream', chatController.handleStreamMessage);
 
 export default router;
