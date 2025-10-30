@@ -4,6 +4,8 @@ import { BaseRepository } from './base.repository';
 interface Message {
    role: 'user' | 'assistant';
    content: string;
+   model_used?: string;
+   token_count?: number;
 }
 
 export class ConversationRepository extends BaseRepository {
@@ -44,7 +46,7 @@ export class ConversationRepository extends BaseRepository {
                orderBy: {
                   createdAt: 'asc',
                },
-               take: 1, // Pour optimiser les performances
+               take: 1,
             },
          },
       });
@@ -72,7 +74,6 @@ export class ConversationRepository extends BaseRepository {
          return [];
       }
 
-      // Convertir les messages au format attendu par le service
       return conversation.messages.map((msg) => ({
          role: msg.role.toLowerCase() as 'user' | 'assistant',
          content: msg.content,
@@ -80,21 +81,55 @@ export class ConversationRepository extends BaseRepository {
    }
 
    async saveConversationMessages(conversationId: string, messages: Message[]) {
-      // Supprimer les messages existants pour cette conversation
-      await this.prisma.message.deleteMany({
-         where: { conversationId },
+      const conversation = await this.prisma.conversation.findUnique({
+         where: { id: conversationId },
       });
 
-      // Recréer tous les messages
-      for (const message of messages) {
-         await this.prisma.message.create({
+      if (!conversation) {
+         throw new Error(`Conversation ${conversationId} not found`);
+      }
+
+      await this.prisma.$transaction(async (tx) => {
+         await tx.message.deleteMany({
+            where: { conversationId },
+         });
+
+         for (const message of messages) {
+            await tx.message.create({
+               data: {
+                  conversationId,
+                  role: message.role.toUpperCase() as Role,
+                  content: message.content,
+                  modelUsed: message.model_used,
+                  tokenCount: message.token_count,
+               },
+            });
+         }
+      });
+   }
+
+   async ensureConversationExists(
+      conversationId: string,
+      userId: string,
+      title: string = 'Nouvelle conversation',
+      model: string = 'gpt-4o-mini'
+   ) {
+      let conversation = await this.prisma.conversation.findUnique({
+         where: { id: conversationId },
+      });
+
+      if (!conversation) {
+         conversation = await this.prisma.conversation.create({
             data: {
-               conversationId,
-               role: message.role.toUpperCase() as Role,
-               content: message.content,
+               id: conversationId,
+               userId,
+               title,
+               model,
             },
          });
       }
+
+      return conversation;
    }
 
    async getConversationTitle(conversationId: string): Promise<string | null> {

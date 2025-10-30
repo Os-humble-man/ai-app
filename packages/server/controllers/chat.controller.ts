@@ -9,11 +9,10 @@ export class ChatController extends BaseController {
    }
 
    handleMessage = async (req: Request, res: Response, next: NextFunction) => {
-      console.log('db error here');
-      const { prompt, conversationId } = req.body;
+      const { prompt, conversationId, userId } = req.body;
 
       this.handleRequest(req, res, next, async () => {
-         // return this.chatService.sendMessage(prompt, conversationId!);
+         return this.chatService.sendMessage(prompt, conversationId!, userId);
       });
    };
 
@@ -23,8 +22,7 @@ export class ChatController extends BaseController {
       next: NextFunction
    ) => {
       try {
-         console.log('in this function');
-         const { prompt, conversationId } = req.body;
+         const { prompt, conversationId, userId } = req.body;
 
          res.writeHead(200, {
             'Content-Type': 'text/event-stream',
@@ -39,7 +37,8 @@ export class ChatController extends BaseController {
 
          const stream = this.chatService.sendMessageStream(
             prompt,
-            conversationId || this.generateConversationId()
+            conversationId || this.generateConversationId(),
+            userId
          );
 
          for await (const chunk of stream) {

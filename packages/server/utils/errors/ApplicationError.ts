@@ -4,7 +4,7 @@ import { HttpStatus } from '../HttpStatus';
  * Base class for all custom application errors.
  * Provides a unified structure for error handling and API responses.
  *
- * @author Mythe
+ * @author Oscar Kanangila
  */
 export class ApplicationError extends Error {
    public readonly statusCode: number;
