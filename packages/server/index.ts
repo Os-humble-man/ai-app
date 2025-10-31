@@ -1,6 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import 'reflect-metadata';
+import './strategies/google.strategy';
+import './strategies/github.strategy';
+
 import { errorHandler } from './middleware/errorHandler';
 import { makeApiRouter } from './routes';
 import { swaggerDocs } from './utils/swagger';

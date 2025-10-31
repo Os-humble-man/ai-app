@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import type { AuthService } from '../services/auth.service';
 import { BaseController } from './base.controller';
 import type { Request, Response, NextFunction } from 'express';
-import { CookiesHelper } from '../utils/CokiesHelper';
+import { CookiesHelper } from '../utils/CookiesHelper';
 import type { OAuthProfile } from '../types/OAuthProfile';
 
 @injectable()
