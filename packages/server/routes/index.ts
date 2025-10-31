@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { Application } from 'express';
-import { userRoutes } from './userRoutes';
-import { chatRoutes } from './chatRoutes';
+import { userRoutes } from './user.routes';
+import { chatRoutes } from './chat.routes';
 import { HttpStatus } from '../utils/HttpStatus';
 
 const makeApiRouter = (app: Application) => {

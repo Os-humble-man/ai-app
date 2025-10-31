@@ -1,0 +1,55 @@
+import { inject, injectable } from 'inversify';
+import bcrypt from 'bcrypt';
+import type { UserRepository } from '../repositories/user.repository';
+import type { CreateUserDto } from '../types/dtos/UserDto';
+import { BusinessError } from '../utils/errors/BusinessError';
+import { HttpStatus } from '../utils/HttpStatus';
+
+@injectable()
+export class AuthService {
+   constructor(
+      @inject('UserRepository') private userRepository: UserRepository
+   ) {}
+   async createUser(user: CreateUserDto) {
+      const existingUser = await this.userRepository.findUserByEmail(
+         user.email
+      );
+      if (existingUser)
+         throw new BusinessError(
+            'User with this email already exists',
+            HttpStatus.CONFLICT
+         );
+
+      const passwordHash = await this.hashPassword(user.password);
+      const createdUser = await this.userRepository.create({
+         email: user.email,
+         passwordHash,
+         name: user.name,
+      });
+      return this.sanitizeUser(createdUser);
+   }
+
+   async updateUserPassword(userId: string, newPassword: string) {
+      const newPasswordHash = await this.hashPassword(newPassword);
+      const updatedUser = await this.userRepository.updateUserPassword(
+         userId,
+         newPasswordHash
+      );
+      return this.sanitizeUser(updatedUser);
+   }
+
+   async deleteUser(userId: string) {
+      const deletedUser = await this.userRepository.deleteUser(userId);
+      return this.sanitizeUser(deletedUser);
+   }
+   private async hashPassword(password: string): Promise<string> {
+      const SALT_ROUNDS = 10;
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+      return hashedPassword;
+   }
+
+   private sanitizeUser(user: any) {
+      const { password, ...safeUser } = user;
+      return safeUser as Omit<typeof user, 'password'>;
+   }
+}

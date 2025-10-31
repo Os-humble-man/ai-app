@@ -9,6 +9,7 @@ import cors from 'cors';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { logger, requestLogger } from './middleware/logger';
+import morgan from 'morgan';
 
 dotenv.config();
 
@@ -66,7 +67,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging
 app.use(requestLogger);
-
+app.use(
+   morgan('combined', { stream: { write: (msg) => logger.info(msg.trim()) } })
+);
 // API routes
 makeApiRouter(app);
 
