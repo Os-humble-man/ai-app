@@ -7,12 +7,23 @@ export class UserRepository extends BaseRepository {
     * @param userId - The ID of the user to find
     * @returns The user object if found, otherwise null
     */
-   async create(user: { email: string; passwordHash?: string; name: string }) {
+   async create(user: {
+      email: string;
+      passwordHash?: string;
+      name: string;
+      provider?: string;
+      providerId?: string;
+      avatarUrl?: string;
+   }) {
       return this.prisma.user.create({
          data: {
             email: user.email,
             password: user.passwordHash,
             name: user.name,
+            provider: user.provider!,
+            providerId: user.providerId!,
+            avatarUrl: user.avatarUrl!,
+            emailVerified: new Date(),
          },
       });
    }

@@ -6,6 +6,7 @@ import { ConversationRepository } from './repositories/conversation.repository';
 import { ChatService } from './services/chat.service';
 import { ChatController } from './controllers/chat.controller';
 import { AuthService } from './services/auth.service';
+import { AuthController } from './controllers/auth.controller';
 const container = new Container();
 
 container
@@ -21,5 +22,6 @@ container.bind<ChatService>('ChatService').to(ChatService).inSingletonScope();
 container.bind<ChatController>('ChatController').to(ChatController);
 
 container.bind<AuthService>('AuthService').to(AuthService).inSingletonScope();
+container.bind<AuthController>('AuthController').to(AuthController);
 
 export { container };

@@ -15,7 +15,7 @@ import type { Request, Response } from 'express';
  * @author Oscar Kanangila
  */
 
-export class CookiesHelperServer {
+export class CookiesHelper {
    static setCookie(
       res: Response,
       name: string,

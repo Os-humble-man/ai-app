@@ -28,10 +28,10 @@ export const UserSchema = {
          email: z.email('Invalid email'),
       }),
    },
-   // loginUser: {
-   //    body: z.object({
-   //       email: z.email('Invalid email'),
-   //       password: z.string().min(6, 'Password too short'),
-   //    }),
-   // },
+   loginUser: {
+      body: z.object({
+         email: z.email('Invalid email'),
+         password: z.string().min(6, 'Password too short'),
+      }),
+   },
 };
