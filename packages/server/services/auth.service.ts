@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify';
 import bcrypt from 'bcrypt';
-import type { UserRepository } from '../repositories/user.repository';
+import { UserRepository } from '../repositories/user.repository';
 import type { CreateUserDto } from '../types/dtos/UserDto';
 import { BusinessError } from '../utils/errors/BusinessError';
 import { HttpStatus } from '../utils/HttpStatus';
@@ -23,14 +23,43 @@ export class AuthService {
             'User with this email already exists',
             HttpStatus.CONFLICT
          );
-
+      const verificationToken = JwtHelper.sign(
+         { email: user.email },
+         { expiresIn: '24h' }
+      );
       const passwordHash = await this.hashPassword(user.password);
       const createdUser = await this.userRepository.create({
          email: user.email,
          passwordHash,
          name: user.name,
+         verificationToken,
       });
       return this.sanitizeUser(createdUser);
+   };
+
+   verifyEmail = async (token: string) => {
+      const payload = JwtHelper.verify(token) as { email: string };
+      if (!payload.email) {
+         throw new BusinessError('Invalid token', HttpStatus.BAD_REQUEST);
+      }
+      const user = await this.userRepository.findUserByEmail(payload.email);
+      if (!user) {
+         throw new NotFoundError('User not found', HttpStatus.NOT_FOUND);
+      }
+      await this.userRepository.verifyUserEmail(user.id);
+      return {
+         success: true,
+         message: 'Email verified successfully',
+      };
+   };
+
+   me = async (token: string) => {
+      const payload = JwtHelper.verify(token) as { id: string; email: string };
+      const user = await this.userRepository.findUserById(payload.id);
+      if (!user) {
+         throw new NotFoundError('User not found', HttpStatus.NOT_FOUND);
+      }
+      return this.sanitizeUser(user);
    };
 
    authenticateUser = async (email: string, password: string) => {

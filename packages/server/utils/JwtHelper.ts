@@ -17,9 +17,10 @@ export class JwtHelper {
    private static readonly JWT_SECRET = process.env.JWT_SECRET || 'jwt_secret';
    private static readonly JWT_EXPIRATION = '1h';
 
-   static sign(payload: object): string {
+   static sign(payload: object, options?: jwt.SignOptions): string {
       return jwt.sign(payload, this.JWT_SECRET, {
          expiresIn: this.JWT_EXPIRATION,
+         ...options,
       });
    }
 

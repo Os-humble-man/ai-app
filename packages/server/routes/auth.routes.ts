@@ -11,6 +11,20 @@ const authRoutes = Router();
 const authController = container.get<AuthController>('AuthController');
 
 authRoutes.post('/login', validate(UserSchema.loginUser), authController.login);
+authRoutes.post(
+   '/register',
+   validate(UserSchema.registerUser),
+   authController.register
+);
+
+authRoutes.get(
+   '/verify-email',
+   validate(UserSchema.verifyEmail),
+   authController.verifyEmail
+);
+authRoutes.get('/me', validate(UserSchema.me), authController.me);
+
+// Provider-based authentication routes
 authRoutes.get(
    '/google',
    passport.authenticate('google', { scope: ['email', 'profile'] }),

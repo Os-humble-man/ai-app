@@ -19,7 +19,7 @@ passport.use(
          const email =
             profile.emails && profile.emails.length > 0
                ? profile.emails[0].value
-               : `${profile.username}@github.local`; // fallback
+               : `${profile.username}@github.local`;
 
          const userProfile: OAuthProfile = {
             id: profile.id,

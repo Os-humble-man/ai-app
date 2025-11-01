@@ -10,6 +10,16 @@ export const UserSchema = {
          password: z.string().min(6, 'Password too short'),
       }),
    },
+   verifyEmail: {
+      query: z.object({
+         token: z.string('Invalid token'),
+      }),
+   },
+   me: {
+      cookies: z.object({
+         auth_token: z.string('Invalid auth token'),
+      }),
+   },
    updatePassword: {
       body: z.object({
          password: z.string().min(6, 'Password too short'),

@@ -14,22 +14,36 @@ export class UserRepository extends BaseRepository {
       provider?: string;
       providerId?: string;
       avatarUrl?: string;
+      verificationToken?: string;
    }) {
+      const provider = (user.provider ?? 'local').toLowerCase();
+
       return this.prisma.user.create({
          data: {
             email: user.email,
             password: user.passwordHash,
             name: user.name,
-            provider: user.provider!,
-            providerId: user.providerId!,
-            avatarUrl: user.avatarUrl!,
-            emailVerified: new Date(),
+            provider,
+            providerId: user.providerId,
+            avatarUrl: user.avatarUrl,
+            emailVerified:
+               provider === 'github' || provider === 'google'
+                  ? new Date()
+                  : null,
+            verificationToken: user.verificationToken,
          },
       });
    }
    async findUserById(userId: string) {
       return this.prisma.user.findUnique({
          where: { id: userId },
+      });
+   }
+
+   async verifyUserEmail(userId: string) {
+      return this.prisma.user.update({
+         where: { id: userId },
+         data: { emailVerified: new Date(), verificationToken: null },
       });
    }
 
