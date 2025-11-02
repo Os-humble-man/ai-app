@@ -1,6 +1,7 @@
 import {
    Asterisk,
    BadgeCheck,
+   ChevronRight,
    ChevronsUpDown,
    DatabaseBackup,
    // Edit,
@@ -11,6 +12,8 @@ import {
    MessageSquarePlus,
    Search,
    Lock,
+   Star,
+   Trash2,
 } from 'lucide-react';
 import {
    Sidebar,
@@ -49,12 +52,29 @@ import {
    AlertDialogHeader,
    AlertDialogTitle,
 } from '../ui/alert-dialog';
+import {
+   Collapsible,
+   CollapsibleContent,
+   CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+
+import { useConversations } from '@/hooks/queries/conversation.queries';
+import { useNavigate } from 'react-router';
+import {
+   useToggleFavorite,
+   useDeleteConversation,
+} from '@/hooks/mutation/conversation.mutation';
 
 const navigationItems = [
    {
       name: 'New chat',
       icon: MessageSquarePlus,
       hasCollapsableSection: false,
+   },
+   {
+      name: 'Recent',
+      icon: DatabaseBackup,
+      hasCollapsableSection: true,
    },
    {
       name: 'Search chat',
@@ -64,11 +84,6 @@ const navigationItems = [
    {
       name: 'Favorites',
       icon: FolderHeart,
-      hasCollapsableSection: true,
-   },
-   {
-      name: 'Recent',
-      icon: DatabaseBackup,
       hasCollapsableSection: true,
    },
    {
@@ -95,6 +110,21 @@ export const AppSidebar = ({
    const { logout } = useAuth();
    const isMobile = useIsMobile();
    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+   const [conversationToDelete, setConversationToDelete] = useState<
+      string | null
+   >(null);
+   const navigation = useNavigate();
+   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+      recent: false,
+      favorites: false,
+      folders: false,
+      templates: false,
+   });
+   const { data: conversations, isLoading: isConversationsLoading } =
+      useConversations(user?.id);
+   const toggleFavoriteMutation = useToggleFavorite(user?.id);
+   const deleteConversationMutation = useDeleteConversation(user?.id);
 
    const userInitials = user?.name
       ? user.name
@@ -117,6 +147,47 @@ export const AppSidebar = ({
    const handleLogoutCancel = () => {
       setShowLogoutDialog(false);
    };
+
+   const handleSelectConversation = (conversationId: string) => {
+      // Handle conversation selection logic here
+      console.log('Selected conversation ID:', conversationId);
+      navigation(`/chat/${conversationId}`);
+   };
+
+   const handleToggleFavorite = (
+      e: React.MouseEvent,
+      conversationId: string,
+      isFavorite: boolean
+   ) => {
+      e.stopPropagation(); // Empêcher la navigation
+      toggleFavoriteMutation.mutate({
+         conversationId,
+         isFavorite: !isFavorite,
+      });
+   };
+
+   const handleDeleteConversation = (
+      e: React.MouseEvent,
+      conversationId: string
+   ) => {
+      e.stopPropagation(); // Empêcher la navigation
+      setConversationToDelete(conversationId);
+      setShowDeleteDialog(true);
+   };
+
+   const handleDeleteConfirm = () => {
+      if (conversationToDelete) {
+         deleteConversationMutation.mutate(conversationToDelete);
+         setShowDeleteDialog(false);
+         setConversationToDelete(null);
+      }
+   };
+
+   const handleDeleteCancel = () => {
+      setShowDeleteDialog(false);
+      setConversationToDelete(null);
+   };
+
    return (
       <Sidebar collapsible="icon">
          <SidebarHeader>
@@ -138,29 +209,164 @@ export const AppSidebar = ({
             <SidebarGroup>
                <SidebarGroupContent>
                   <SidebarMenu>
-                     {navigationItems.map((item) => (
-                        <SidebarMenuItem key={item.name}>
-                           <SidebarMenuButton
-                              asChild
-                              className={cn(
-                                 currentView === item.name.toLowerCase() &&
-                                    'bg-accent'
-                              )}
-                              tooltip={item.name}
-                           >
-                              <p
-                                 onClick={() =>
-                                    onViewChange(item.name.toLowerCase())
+                     {navigationItems.map((item) => {
+                        const sectionKey = item.name.toLowerCase();
+                        const isOpen = openSections[sectionKey];
+
+                        if (item.hasCollapsableSection) {
+                           return (
+                              <Collapsible
+                                 key={item.name}
+                                 open={isOpen}
+                                 onOpenChange={(open) =>
+                                    setOpenSections((prev) => ({
+                                       ...prev,
+                                       [sectionKey]: open,
+                                    }))
                                  }
+                                 className="group/collapsible"
                               >
-                                 <item.icon className="w-6 h-6" />
-                                 <span className="group-data-[collapsible=icon]:hidden">
-                                    {item.name}
-                                 </span>
-                              </p>
-                           </SidebarMenuButton>
-                        </SidebarMenuItem>
-                     ))}
+                                 <SidebarMenuItem>
+                                    <CollapsibleTrigger asChild>
+                                       <SidebarMenuButton
+                                          className={cn(
+                                             currentView === sectionKey &&
+                                                'bg-accent'
+                                          )}
+                                          tooltip={item.name}
+                                       >
+                                          <item.icon className="w-6 h-6" />
+                                          <span className="group-data-[collapsible=icon]:hidden">
+                                             {item.name}
+                                          </span>
+                                          <ChevronRight
+                                             className={cn(
+                                                'ml-auto h-4 w-4 transition-transform duration-200 group-data-[collapsible=icon]:hidden',
+                                                isOpen && 'rotate-90'
+                                             )}
+                                          />
+                                       </SidebarMenuButton>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent>
+                                       <div className="pl-8 pr-2 py-1 text-sm text-muted-foreground group-data-[collapsible=icon]:hidden">
+                                          {sectionKey === 'recent' ? (
+                                             isConversationsLoading ? (
+                                                <p className="text-xs py-2">
+                                                   Loading...
+                                                </p>
+                                             ) : conversations &&
+                                               conversations.length > 0 ? (
+                                                <div className="space-y-1">
+                                                   {conversations
+                                                      .slice(0, 5)
+                                                      .map((conv) => (
+                                                         <div
+                                                            key={conv.id}
+                                                            className="group/item flex items-center gap-1 w-full px-2 py-1.5 rounded-md hover:bg-accent transition-colors"
+                                                         >
+                                                            <button
+                                                               className="flex-1 text-left text-xs truncate"
+                                                               onClick={() =>
+                                                                  handleSelectConversation(
+                                                                     conv.id
+                                                                  )
+                                                               }
+                                                            >
+                                                               {conv.title ||
+                                                                  'Untitled conversation'}
+                                                            </button>
+                                                            <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                               <button
+                                                                  onClick={(
+                                                                     e
+                                                                  ) =>
+                                                                     handleToggleFavorite(
+                                                                        e,
+                                                                        conv.id,
+                                                                        conv.isFavorite
+                                                                     )
+                                                                  }
+                                                                  className={cn(
+                                                                     'p-1 rounded hover:bg-accent-foreground/10',
+                                                                     conv.isFavorite &&
+                                                                        'text-yellow-500'
+                                                                  )}
+                                                                  title={
+                                                                     conv.isFavorite
+                                                                        ? 'Remove from favorites'
+                                                                        : 'Add to favorites'
+                                                                  }
+                                                               >
+                                                                  <Star
+                                                                     className={cn(
+                                                                        'h-3 w-3',
+                                                                        conv.isFavorite &&
+                                                                           'fill-current'
+                                                                     )}
+                                                                  />
+                                                               </button>
+                                                               <button
+                                                                  onClick={(
+                                                                     e
+                                                                  ) =>
+                                                                     handleDeleteConversation(
+                                                                        e,
+                                                                        conv.id
+                                                                     )
+                                                                  }
+                                                                  className="p-1 rounded hover:bg-destructive/10 hover:text-destructive"
+                                                                  title="Delete conversation"
+                                                               >
+                                                                  <Trash2 className="h-3 w-3" />
+                                                               </button>
+                                                            </div>
+                                                         </div>
+                                                      ))}
+                                                </div>
+                                             ) : (
+                                                <p className="text-xs py-2">
+                                                   No conversations yet
+                                                </p>
+                                             )
+                                          ) : (
+                                             <p className="text-xs py-2">
+                                                No items yet
+                                             </p>
+                                          )}
+                                       </div>
+                                    </CollapsibleContent>
+                                 </SidebarMenuItem>
+                              </Collapsible>
+                           );
+                        }
+
+                        return (
+                           <SidebarMenuItem key={item.name}>
+                              <SidebarMenuButton
+                                 asChild
+                                 className={cn(
+                                    currentView === sectionKey && 'bg-accent'
+                                 )}
+                                 tooltip={item.name}
+                              >
+                                 <p
+                                    onClick={() => {
+                                       if (sectionKey === 'new chat') {
+                                          navigation('/');
+                                       } else {
+                                          onViewChange(sectionKey);
+                                       }
+                                    }}
+                                 >
+                                    <item.icon className="w-6 h-6" />
+                                    <span className="group-data-[collapsible=icon]:hidden">
+                                       {item.name}
+                                    </span>
+                                 </p>
+                              </SidebarMenuButton>
+                           </SidebarMenuItem>
+                        );
+                     })}
                   </SidebarMenu>
                </SidebarGroupContent>
             </SidebarGroup>
@@ -272,6 +478,33 @@ export const AppSidebar = ({
                   </AlertDialogCancel>
                   <AlertDialogAction onClick={handleLogoutConfirm}>
                      Logout
+                  </AlertDialogAction>
+               </AlertDialogFooter>
+            </AlertDialogContent>
+         </AlertDialog>
+
+         {/* Delete Confirmation Dialog */}
+         <AlertDialog
+            open={showDeleteDialog}
+            onOpenChange={setShowDeleteDialog}
+         >
+            <AlertDialogContent>
+               <AlertDialogHeader>
+                  <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                     This action cannot be undone. This will permanently delete
+                     the conversation and all its messages.
+                  </AlertDialogDescription>
+               </AlertDialogHeader>
+               <AlertDialogFooter>
+                  <AlertDialogCancel onClick={handleDeleteCancel}>
+                     Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                     onClick={handleDeleteConfirm}
+                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                     Delete
                   </AlertDialogAction>
                </AlertDialogFooter>
             </AlertDialogContent>

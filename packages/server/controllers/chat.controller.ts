@@ -9,10 +9,15 @@ export class ChatController extends BaseController {
    }
 
    handleMessage = async (req: Request, res: Response, next: NextFunction) => {
-      const { prompt, conversationId, userId } = req.body;
+      const { prompt, conversationId, userId, senderId } = req.body;
+      const actualUserId = userId || senderId;
 
       this.handleRequest(req, res, next, async () => {
-         return this.chatService.sendMessage(prompt, conversationId!, userId);
+         return this.chatService.sendMessage(
+            prompt,
+            conversationId!,
+            actualUserId
+         );
       });
    };
 
@@ -21,8 +26,15 @@ export class ChatController extends BaseController {
       res: Response,
       next: NextFunction
    ) => {
+      console.log('body', req.body);
       try {
-         const { prompt, conversationId, userId } = req.body;
+         const { prompt, conversationId, userId, senderId } = req.body;
+         const actualUserId = userId || senderId;
+
+         if (!actualUserId) {
+            res.status(400).json({ error: 'userId or senderId is required' });
+            return;
+         }
 
          res.writeHead(200, {
             'Content-Type': 'text/event-stream',
@@ -38,7 +50,7 @@ export class ChatController extends BaseController {
          const stream = this.chatService.sendMessageStream(
             prompt,
             conversationId || this.generateConversationId(),
-            userId
+            actualUserId
          );
 
          for await (const chunk of stream) {
@@ -92,13 +104,10 @@ export class ChatController extends BaseController {
       next: NextFunction
    ) => {
       this.handleRequest(req, res, next, async () => {
-         // Implémentez cette méthode dans votre service si nécessaire
-         // return this.chatService.getConversations(req.user.id);
-         throw new Error('Not implemented');
+         return this.chatService.getConversationList(req.body.userId);
       });
    };
 
-   // Méthode pour récupérer une conversation spécifique
    getConversation = async (
       req: Request,
       res: Response,
@@ -107,9 +116,7 @@ export class ChatController extends BaseController {
       const { id } = req.params;
 
       this.handleRequest(req, res, next, async () => {
-         // Implémentez cette méthode dans votre service si nécessaire
-         // return this.chatService.getConversation(id, req.user.id);
-         throw new Error('Not implemented');
+         return this.chatService.getUserConversationById(id!);
       });
    };
 

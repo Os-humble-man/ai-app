@@ -271,6 +271,122 @@ class ApiClient {
       return this.extractData<T>(response);
    }
 
+   /**
+    * Stream data from server using Server-Sent Events (SSE)
+    * Uses fetch instead of axios for proper streaming support
+    */
+   public async stream<T = unknown>(
+      url: string,
+      data: unknown,
+      callbacks: {
+         onChunk: (chunk: string) => void;
+         onDone: () => void;
+         onError: (error: string) => void;
+         onConversationId?: (conversationId: string) => void;
+      },
+      config?: RequestConfig
+   ): Promise<void> {
+      try {
+         // Get the token for authentication
+         const token = this.getAuthToken();
+
+         // Construct full URL
+         const fullUrl = `${this.axiosInstance.defaults.baseURL}${url}`;
+
+         // Prepare headers
+         const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            Accept: 'text/event-stream',
+         };
+
+         // Add authorization if token exists
+         if (token && !config?.skipAuth) {
+            headers['Authorization'] = `Bearer ${token}`;
+         }
+
+         // Add custom headers
+         if (config?.headers) {
+            Object.assign(headers, config.headers);
+         }
+
+         // Make fetch request
+         const response = await fetch(fullUrl, {
+            method: 'POST',
+            headers,
+            credentials: 'include',
+            body: JSON.stringify(data),
+         });
+
+         if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+         }
+
+         const reader = response.body?.getReader();
+         const decoder = new TextDecoder();
+
+         if (!reader) {
+            throw new Error('Unable to read response body');
+         }
+
+         let buffer = '';
+
+         while (true) {
+            const { value, done } = await reader.read();
+
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+
+            // Process each complete line
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || ''; // Keep incomplete line
+
+            for (const line of lines) {
+               if (line.startsWith('data: ')) {
+                  const data = line.slice(6); // Remove "data: "
+
+                  if (data.trim() === '') continue;
+
+                  try {
+                     const parsed = JSON.parse(data) as T;
+
+                     if (
+                        (parsed as any).type === 'chunk' &&
+                        (parsed as any).content
+                     ) {
+                        callbacks.onChunk((parsed as any).content);
+                     } else if (
+                        (parsed as any).type === 'conversationId' &&
+                        (parsed as any).conversationId
+                     ) {
+                        callbacks.onConversationId?.(
+                           (parsed as any).conversationId
+                        );
+                     } else if ((parsed as any).type === 'done') {
+                        callbacks.onDone();
+                        return;
+                     } else if ((parsed as any).type === 'error') {
+                        callbacks.onError(
+                           (parsed as any).error || 'Unknown error'
+                        );
+                        return;
+                     }
+                  } catch (parseError) {
+                     console.error('Parse error:', parseError);
+                  }
+               }
+            }
+         }
+
+         callbacks.onDone();
+      } catch (error) {
+         console.error('Stream error:', error);
+         callbacks.onError(
+            error instanceof Error ? error.message : 'Failed to stream data'
+         );
+      }
+   }
+
    // Méthodes utilitaires
    public setHeader(key: string, value: string): void {
       this.axiosInstance.defaults.headers.common[key] = value;

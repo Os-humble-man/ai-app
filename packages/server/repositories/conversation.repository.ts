@@ -114,6 +114,10 @@ export class ConversationRepository extends BaseRepository {
       title: string = 'Nouvelle conversation',
       model: string = 'gpt-4o-mini'
    ) {
+      if (!userId) {
+         throw new Error('userId is required to create a conversation');
+      }
+
       let conversation = await this.prisma.conversation.findUnique({
          where: { id: conversationId },
       });
@@ -138,6 +142,32 @@ export class ConversationRepository extends BaseRepository {
          select: { title: true },
       });
       return conversation?.title || null;
+   }
+
+   async listUserConversations(userId: string) {
+      return this.prisma.conversation.findMany({
+         where: { userId },
+         orderBy: { updatedAt: 'desc' },
+      });
+   }
+
+   async getUserConversationById(conversationId: string) {
+      return this.prisma.conversation.findUnique({
+         where: { id: conversationId },
+         include: {
+            messages: {
+               orderBy: {
+                  createdAt: 'asc',
+               },
+            },
+         },
+      });
+   }
+
+   async deleteConversation(conversationId: string): Promise<void> {
+      await this.prisma.conversation.delete({
+         where: { id: conversationId },
+      });
    }
 
    async setConversationTitle(

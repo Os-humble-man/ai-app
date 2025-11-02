@@ -1,27 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router';
 import { Textarea } from './ui/textarea';
 import MessageList, { type Message } from './message-list';
+import { useAuthStore } from '@/store/auth.store';
+import {
+   useConversations,
+   useConversation,
+} from '@/hooks/queries/conversation.queries';
+import { useSendMessageStream } from '@/hooks/mutation/conversation.mutation';
 
 export const ChatBox = () => {
+   const { id: urlConversationId } = useParams<{ id: string }>();
    const [messages, setMessages] = useState<Message[]>([]);
    const [inputValue, setInputValue] = useState('');
-   const [isLoading, setIsLoading] = useState(false);
+   const [conversationId, setConversationId] = useState<string | undefined>(
+      urlConversationId
+   );
+   const { user } = useAuthStore();
+   const { data: conversations } = useConversations(user?.id);
+   const { data: conversation, isLoading: isConversationLoading } =
+      useConversation(conversationId || '');
+   const sendMessageMutation = useSendMessageStream(user?.id);
+
+   // Charger les messages de la conversation quand elle change
+   useEffect(() => {
+      if (urlConversationId) {
+         setConversationId(urlConversationId);
+      } else {
+         // Pas d'ID dans l'URL = nouvelle conversation
+         setConversationId(undefined);
+         setMessages([]);
+      }
+   }, [urlConversationId]);
+
+   // Mettre à jour les messages quand la conversation est chargée
+   useEffect(() => {
+      if (conversation?.messages && urlConversationId) {
+         const formattedMessages: Message[] = conversation.messages.map(
+            (msg) => ({
+               id: msg.id,
+               content: msg.content,
+               sender: msg.role.toLowerCase() === 'user' ? 'user' : 'ai',
+               timestamp: new Date(msg.createdAt),
+            })
+         );
+         setMessages(formattedMessages);
+      }
+   }, [conversation, urlConversationId]);
 
    const handleSendMessage = async () => {
-      if (!inputValue.trim() || isLoading) return;
+      if (!inputValue.trim() || sendMessageMutation.isPending || !user) return;
 
+      const userMessageContent = inputValue.trim();
       const newUserMessage: Message = {
          id: Date.now().toString(),
-         content: inputValue.trim(),
+         content: userMessageContent,
          sender: 'user',
          timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, newUserMessage]);
       setInputValue('');
-      setIsLoading(true);
 
-      // Create an empty AI message for streaming immediately
+      // Create an empty AI message for streaming
       const aiMessageId = (Date.now() + 1).toString();
       const initialAiMessage: Message = {
          id: aiMessageId,
@@ -32,78 +73,33 @@ export const ChatBox = () => {
       setMessages((prev) => [...prev, initialAiMessage]);
 
       try {
-         // Alternative with fetch and ReadableStream
-         const response = await fetch('/api/chat/stream', {
-            method: 'POST',
-            headers: {
-               'Content-Type': 'application/json',
-               Accept: 'text/event-stream',
+         await sendMessageMutation.mutateAsync({
+            message: {
+               prompt: userMessageContent,
+               senderId: user.id,
+               conversationId: conversationId,
             },
-            body: JSON.stringify({ prompt: newUserMessage.content }),
+            callbacks: {
+               onChunk: (chunk: string) => {
+                  setMessages((prev) =>
+                     prev.map((msg) =>
+                        msg.id === aiMessageId
+                           ? {
+                                ...msg,
+                                content: msg.content + chunk,
+                             }
+                           : msg
+                     )
+                  );
+               },
+               onConversationId: (newConversationId: string) => {
+                  setConversationId(newConversationId);
+               },
+            },
+            conversationId: conversationId,
          });
-
-         if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-         }
-
-         const reader = response.body?.getReader();
-         const decoder = new TextDecoder();
-
-         if (!reader) {
-            throw new Error('Unable to read response body');
-         }
-
-         let buffer = '';
-
-         while (true) {
-            const { value, done } = await reader.read();
-
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-
-            // Process each complete line
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || ''; // Keep the line incomplete
-
-            for (const line of lines) {
-               if (line.startsWith('data: ')) {
-                  const data = line.slice(6); // Retirer "data: "
-
-                  if (data.trim() === '') continue;
-
-                  try {
-                     const parsed = JSON.parse(data);
-
-                     if (parsed.type === 'chunk') {
-                        // Update the AI message with the new content
-                        setMessages((prev) =>
-                           prev.map((msg) =>
-                              msg.id === aiMessageId
-                                 ? {
-                                      ...msg,
-                                      content: msg.content + parsed.content,
-                                   }
-                                 : msg
-                           )
-                        );
-                     } else if (parsed.type === 'done') {
-                        // Streaming finished
-                        setIsLoading(false);
-                        break;
-                     } else if (parsed.type === 'error') {
-                        throw new Error(parsed.error);
-                     }
-                  } catch (parseError) {
-                     console.error('Erreur de parsing:', parseError);
-                  }
-               }
-            }
-         }
       } catch (error) {
          console.error('Error sending message:', error);
-
-         // Replace the empty AI message with an error message
          setMessages((prev) =>
             prev.map((msg) =>
                msg.id === aiMessageId
@@ -115,7 +111,6 @@ export const ChatBox = () => {
                   : msg
             )
          );
-         setIsLoading(false);
       }
    };
 
@@ -126,13 +121,24 @@ export const ChatBox = () => {
       }
    };
 
+   console.log(conversations);
+
    return (
       <div className="relative h-full max-w-6xl w-full mx-auto">
          <div className="absolute inset-0 pb-40 px-6 pt-6">
-            {messages.length === 0 ? (
+            {isConversationLoading ? (
+               <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                     <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                     <p className="text-muted-foreground">
+                        Loading conversation...
+                     </p>
+                  </div>
+               </div>
+            ) : messages.length === 0 ? (
                <div className="flex flex-col items-center justify-center h-full">
                   <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-center mb-4">
-                     Bonjour,
+                     Bonjour {user?.name.split(' ')[0] || 'cher utilisateur'} !,
                      <br />
                      <span className="text-muted-foreground">
                         comment puis-je vous aider aujourd'hui ?
@@ -152,14 +158,14 @@ export const ChatBox = () => {
                   onKeyPress={handleKeyPress}
                   placeholder="Tapez votre message ici..."
                   className="w-full h-32 resize-none rounded-2xl border border-gray-300 p-4 pr-14 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  disabled={isLoading}
+                  disabled={sendMessageMutation.isPending}
                />
                <button
                   onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isLoading}
+                  disabled={!inputValue.trim() || sendMessageMutation.isPending}
                   className="absolute bottom-6 right-3 p-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-full transition-colors"
                >
-                  {isLoading ? (
+                  {sendMessageMutation.isPending ? (
                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                      <svg

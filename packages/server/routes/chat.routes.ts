@@ -8,5 +8,7 @@ const chatController = container.get<ChatController>('ChatController');
 
 chatRoutes.post('/', chatController.handleMessage);
 chatRoutes.post('/stream', chatController.handleStreamMessage);
+chatRoutes.post('/conversations', chatController.getConversations);
+chatRoutes.get('/conversation/:id', chatController.getConversation);
 
 export { chatRoutes };

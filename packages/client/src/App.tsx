@@ -11,19 +11,21 @@ import { ProtectedRoute } from './components/shared/protected-route';
 
 const LoginPage = lazy(() => import('./pages/login-page'));
 const RegisterPage = lazy(() => import('./pages/register-page'));
-
-// function App() {
-//    return (
-//       <Layout>
-//          <div className="flex flex-1 items-center justify-center">
-//             <ChatBox />
-//          </div>
-//       </Layout>
-//    );
-// }
 const AppRouter = createBrowserRouter([
    {
       path: '/',
+      element: (
+         <ProtectedRoute>
+            <Layout>
+               <Suspense fallback={<div>Loading chat...</div>}>
+                  <ChatBox />
+               </Suspense>
+            </Layout>
+         </ProtectedRoute>
+      ),
+   },
+   {
+      path: '/chat/:id',
       element: (
          <ProtectedRoute>
             <Layout>

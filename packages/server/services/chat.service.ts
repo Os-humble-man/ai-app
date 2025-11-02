@@ -88,6 +88,16 @@ Titre:`;
       }
    }
 
+   async getConversationList(userId: string) {
+      return this.conversationRepository.listUserConversations(userId);
+   }
+
+   async getUserConversationById(conversationId: string) {
+      return this.conversationRepository.getUserConversationById(
+         conversationId
+      );
+   }
+
    async sendMessage(
       prompt: string,
       conversationId: string | undefined,
@@ -105,6 +115,14 @@ Titre:`;
             );
             actualConversationId = conversation.id;
             isNewConversation = true;
+         } else {
+            // Verify that the conversation exists, create if not
+            await this.conversationRepository.ensureConversationExists(
+               actualConversationId,
+               userId,
+               'Nouvelle conversation',
+               this.DEFAULT_MODEL
+            );
          }
 
          let messages: Message[] =
@@ -145,7 +163,7 @@ Titre:`;
          );
 
          // New conversation title generation
-         if (isNewConversation) {
+         if (isNewConversation || messages.length === 2) {
             await this.generateConversationTitle(
                actualConversationId,
                messages
@@ -170,7 +188,7 @@ Titre:`;
 
    async *sendMessageStream(
       prompt: string,
-      conversationId: string | undefined, // Permettre undefined ici aussi
+      conversationId: string | undefined,
       userId: string
    ): AsyncGenerator<StreamChunk & { conversationId?: string }> {
       try {
@@ -178,7 +196,7 @@ Titre:`;
          let messages: Message[] = [];
          let isNewConversation = false;
 
-         // Même logique de création/récupération que sendMessage
+         // Create or get conversation
          if (!actualConversationId) {
             const conversation = await this.conversationRepository.create(
                userId,
@@ -189,6 +207,14 @@ Titre:`;
             isNewConversation = true;
             messages = [];
          } else {
+            // Verify that the conversation exists, create if not
+            await this.conversationRepository.ensureConversationExists(
+               actualConversationId,
+               userId,
+               'Nouvelle conversation',
+               this.DEFAULT_MODEL
+            );
+
             messages =
                await this.conversationRepository.getConversationMessages(
                   actualConversationId
@@ -209,6 +235,7 @@ Titre:`;
          let fullResponse = '';
          let responseId = '';
 
+         // Send conversationId immediately so frontend knows it
          yield {
             id: 'conversation',
             content: '',
@@ -247,19 +274,22 @@ Titre:`;
             token_count: fullResponse.length,
          });
 
+         // Save messages - conversation is guaranteed to exist now
          await this.conversationRepository.saveConversationMessages(
             actualConversationId,
             messages
          );
 
          if (isNewConversation && messages.length >= 2) {
-            await this.generateConversationTitle(actualConversationId, messages) // ← CORRECTION
-               .catch((error) =>
-                  console.error('Background title generation failed:', error)
-               );
+            await this.generateConversationTitle(
+               actualConversationId,
+               messages
+            ).catch((error) =>
+               console.error('Background title generation failed:', error)
+            );
          }
 
-         console.log(`Conversation ${actualConversationId}: Stream completed`); // ← CORRECTION
+         console.log(`Conversation ${actualConversationId}: Stream completed`);
 
          yield {
             id: responseId,
