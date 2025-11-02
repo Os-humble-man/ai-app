@@ -64,6 +64,17 @@ export class AuthController extends BaseController {
       });
    };
 
+   logout = (req: Request, res: Response, next: NextFunction) => {
+      return this.handleRequest(req, res, next, async () => {
+         // Clear the auth cookie
+         CookiesHelper.deleteCookie(res, 'auth_token');
+         return {
+            success: true,
+            message: 'Logged out successfully',
+         };
+      });
+   };
+
    updatePassword = (req: Request, res: Response, next: NextFunction) => {
       return this.handleRequest(req, res, next, async () => {
          const { id, newPassword } = req.body;
@@ -75,8 +86,8 @@ export class AuthController extends BaseController {
       });
    };
 
-   googleCallback = (req: Request, res: Response, next: NextFunction) => {
-      return this.handleRequest(req, res, next, async () => {
+   googleCallback = async (req: Request, res: Response, next: NextFunction) => {
+      try {
          const profile = req.user as OAuthProfile;
          const result = await this.authService.authenticateUserWithProvider(
             'google',
@@ -87,12 +98,18 @@ export class AuthController extends BaseController {
             secure: process.env.NODE_ENV === 'production',
             maxAge: 7 * 24 * 60 * 60 * 1000,
          });
-         return result;
-      });
+
+         // Redirect to frontend OAuth callback page
+         const frontendUrl =
+            process.env.FRONTEND_URL || 'http://localhost:5173';
+         res.redirect(`${frontendUrl}/oauth/callback`);
+      } catch (error) {
+         next(error);
+      }
    };
 
-   githubCallback = (req: Request, res: Response, next: NextFunction) => {
-      return this.handleRequest(req, res, next, async () => {
+   githubCallback = async (req: Request, res: Response, next: NextFunction) => {
+      try {
          const profile = req.user as OAuthProfile;
          const result = await this.authService.authenticateUserWithProvider(
             'github',
@@ -103,7 +120,13 @@ export class AuthController extends BaseController {
             secure: process.env.NODE_ENV === 'production',
             maxAge: 7 * 24 * 60 * 60 * 1000,
          });
-         return result;
-      });
+
+         // Redirect to frontend OAuth callback page
+         const frontendUrl =
+            process.env.FRONTEND_URL || 'http://localhost:5173';
+         res.redirect(`${frontendUrl}/oauth/callback`);
+      } catch (error) {
+         next(error);
+      }
    };
 }

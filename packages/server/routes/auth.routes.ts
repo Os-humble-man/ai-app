@@ -23,6 +23,7 @@ authRoutes.get(
    authController.verifyEmail
 );
 authRoutes.get('/me', validate(UserSchema.me), authController.me);
+authRoutes.post('/logout', authController.logout);
 
 // Provider-based authentication routes
 authRoutes.get(

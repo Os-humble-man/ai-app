@@ -36,6 +36,12 @@ export abstract class BaseController {
    ): Promise<void> {
       try {
          const result = await operation();
+
+         // Don't send response if headers already sent (e.g., after redirect)
+         if (res.headersSent) {
+            return;
+         }
+
          // If the result is paginated, it will include pagination info
          if ((result as any)?.pagination) {
             this.sendPaginated(res, result as unknown as PaginatedResult<T>);

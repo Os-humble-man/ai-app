@@ -1,6 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import 'reflect-metadata';
+import passport from 'passport';
+import cookieParser from 'cookie-parser';
 import './strategies/google.strategy';
 import './strategies/github.strategy';
 
@@ -67,6 +69,12 @@ app.use(limiter);
 // Parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Cookie parser for authentication
+app.use(cookieParser());
+
+// Passport initialization
+app.use(passport.initialize());
 
 // Request logging
 app.use(requestLogger);

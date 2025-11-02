@@ -1,0 +1,297 @@
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from 'axios';
+
+type RequestConfig = AxiosRequestConfig & {
+   headers?: Record<string, string>;
+   timeout?: number;
+   params?: Record<string, unknown>;
+   skipAuth?: boolean;
+   retry?: boolean;
+};
+
+interface ApiResponse<T> {
+   status: number;
+   message: string;
+   data: T | null;
+   headers?: Record<string, string>;
+   timestamp?: string;
+}
+
+interface ErrorResponse {
+   status: number;
+   message: string;
+   code?: string;
+   details?: unknown;
+   timestamp?: string;
+}
+
+// Configuration
+const API_CONFIG = {
+   baseURL: (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || '/api',
+   timeout: 30000,
+   maxRetries: 3,
+   retryDelay: 1000,
+} as const;
+
+class ApiClient {
+   private axiosInstance: ReturnType<typeof axios.create>;
+
+   constructor() {
+      this.axiosInstance = axios.create({
+         baseURL: API_CONFIG.baseURL,
+         withCredentials: true,
+         timeout: API_CONFIG.timeout,
+         headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+         },
+      });
+
+      this.setupInterceptors();
+   }
+
+   private getAuthToken(): string | null {
+      if (typeof window === 'undefined') return null;
+
+      try {
+         const authStore = localStorage.getItem('auth-storage');
+         if (!authStore) return null;
+
+         const parsed = JSON.parse(authStore);
+         return parsed.state?.token || null;
+      } catch {
+         return null;
+      }
+   }
+
+   private shouldRetry(error: AxiosError): boolean {
+      return (
+         error.code === 'ECONNABORTED' ||
+         error.code === 'NETWORK_ERROR' ||
+         (typeof error.response?.status === 'number' &&
+            error.response.status >= 500)
+      );
+   }
+
+   private async delay(ms: number): Promise<void> {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+   }
+
+   private setupInterceptors(): void {
+      // Request interceptor
+      this.axiosInstance.interceptors.request.use(
+         (config) => {
+            const token = this.getAuthToken();
+
+            if (token && !(config as RequestConfig).skipAuth) {
+               config.headers.Authorization = `Bearer ${token}`;
+            }
+
+            // Log en développement
+            if (
+               (
+                  (globalThis as any)?.process?.env?.NODE_ENV || ''
+               ).toLowerCase() === 'development'
+            ) {
+               console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, {
+                  data: config.data,
+                  params: config.params,
+               });
+            }
+
+            return config;
+         },
+         (error) => {
+            console.error('❌ Request interceptor error:', error);
+            return Promise.reject(this.normalizeError(error));
+         }
+      );
+
+      // Response interceptor
+      this.axiosInstance.interceptors.response.use(
+         (response: AxiosResponse) => {
+            // Log en développement
+            if (
+               (
+                  (globalThis as any)?.process?.env?.NODE_ENV || ''
+               ).toLowerCase() === 'development'
+            ) {
+               console.log(
+                  `✅ ${response.config.method?.toUpperCase()} ${response.config.url}`,
+                  {
+                     status: response.status,
+                     data: response.data,
+                  }
+               );
+            }
+            return response;
+         },
+         async (error: AxiosError) => {
+            const originalRequest = error.config as RequestConfig & {
+               _retryCount?: number;
+            };
+
+            // Gestion des retries
+            if (originalRequest?.retry !== false && this.shouldRetry(error)) {
+               originalRequest._retryCount =
+                  (originalRequest._retryCount || 0) + 1;
+
+               if (originalRequest._retryCount <= API_CONFIG.maxRetries) {
+                  await this.delay(
+                     API_CONFIG.retryDelay * originalRequest._retryCount
+                  );
+                  return this.axiosInstance(originalRequest);
+               }
+            }
+
+            return Promise.reject(this.normalizeError(error));
+         }
+      );
+   }
+
+   private normalizeError(error: AxiosError): ErrorResponse {
+      // Erreur réseau ou timeout
+      if (!error.response) {
+         return {
+            status: 0,
+            message:
+               error.code === 'ECONNABORTED'
+                  ? 'Request timeout'
+                  : 'Network error - please check your connection',
+            code: error.code,
+         };
+      }
+
+      const { status, data, headers } = error.response;
+      let message = 'An error occurred';
+
+      // Extraction du message d'erreur
+      if (typeof data === 'string') {
+         message = data;
+      } else if (data && typeof data === 'object') {
+         message =
+            (data as any).message ||
+            (data as any).error ||
+            (data as any).detail ||
+            message;
+      }
+
+      const errorResponse: ErrorResponse = {
+         status,
+         message,
+         timestamp: new Date().toISOString(),
+      };
+
+      // Gestion des erreurs spécifiques
+      if (status === 401 && !(error.config as RequestConfig)?.skipAuth) {
+         this.handleUnauthorized();
+      } else if (
+         status === 403 &&
+         (data as any)?.code === 'PASSWORD_CHANGE_REQUIRED'
+      ) {
+         this.handlePasswordChangeRequired();
+      }
+
+      return errorResponse;
+   }
+
+   private handleUnauthorized(): void {
+      if (typeof window === 'undefined') return;
+
+      console.warn('🔐 Session expired or unauthorized access');
+
+      // Nettoyage du storage
+      localStorage.removeItem('auth-storage');
+      sessionStorage.clear();
+
+      // Redirection si nécessaire
+      if (window.location.pathname !== '/login') {
+         window.location.href = '/login';
+      }
+   }
+
+   private handlePasswordChangeRequired(): void {
+      if (typeof window === 'undefined') return;
+
+      console.warn('🔐 Password change required');
+      window.location.href = '/change-password';
+   }
+
+   private extractData<T>(response: AxiosResponse<unknown>): T {
+      const data = response.data;
+
+      // Si la réponse suit le format ApiResponse<T>
+      if (data && typeof data === 'object' && 'data' in (data as object)) {
+         const apiResponse = data as ApiResponse<T>;
+         if (apiResponse.data === null || apiResponse.data === undefined) {
+            throw new Error('No data received from server');
+         }
+         return apiResponse.data;
+      }
+
+      // Si la réponse est directement les données
+      return data as T;
+   }
+
+   // Méthodes HTTP améliorées
+   public async get<T>(url: string, config?: RequestConfig): Promise<T> {
+      const response = await this.axiosInstance.get(url, config);
+      return this.extractData<T>(response);
+   }
+
+   public async post<T, U = unknown>(
+      url: string,
+      data?: U,
+      config?: RequestConfig
+   ): Promise<T> {
+      const response = await this.axiosInstance.post(url, data, config);
+      return this.extractData<T>(response);
+   }
+
+   public async put<T, U = unknown>(
+      url: string,
+      data?: U,
+      config?: RequestConfig
+   ): Promise<T> {
+      const response = await this.axiosInstance.put(url, data, config);
+      return this.extractData<T>(response);
+   }
+
+   public async patch<T, U = unknown>(
+      url: string,
+      data?: U,
+      config?: RequestConfig
+   ): Promise<T> {
+      const response = await this.axiosInstance.patch(url, data, config);
+      return this.extractData<T>(response);
+   }
+
+   public async delete<T>(url: string, config?: RequestConfig): Promise<T> {
+      const response = await this.axiosInstance.delete(url, config);
+      return this.extractData<T>(response);
+   }
+
+   // Méthodes utilitaires
+   public setHeader(key: string, value: string): void {
+      this.axiosInstance.defaults.headers.common[key] = value;
+   }
+
+   public removeHeader(key: string): void {
+      delete this.axiosInstance.defaults.headers.common[key];
+   }
+
+   public setBaseURL(url: string): void {
+      this.axiosInstance.defaults.baseURL = url;
+   }
+}
+
+// Export des instances
+export const createApiClient = () => new ApiClient();
+
+const defaultApiClient = new ApiClient();
+export default defaultApiClient;
+
+// Hook pour React (optionnel)
+export const useApiClient = () => {
+   return defaultApiClient;
+};

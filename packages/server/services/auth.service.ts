@@ -54,12 +54,18 @@ export class AuthService {
    };
 
    me = async (token: string) => {
-      const payload = JwtHelper.verify(token) as { id: string; email: string };
-      const user = await this.userRepository.findUserById(payload.id);
+      const payload = JwtHelper.verify(token) as {
+         userId: string;
+         email: string;
+      };
+      const user = await this.userRepository.findUserById(payload.userId);
       if (!user) {
          throw new NotFoundError('User not found', HttpStatus.NOT_FOUND);
       }
-      return this.sanitizeUser(user);
+      return {
+         user: this.sanitizeUser(user),
+         token: token,
+      };
    };
 
    authenticateUser = async (email: string, password: string) => {

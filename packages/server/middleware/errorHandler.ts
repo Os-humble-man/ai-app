@@ -17,6 +17,11 @@ export function errorHandler(
    res: Response,
    _next: NextFunction
 ) {
+   // If headers are already sent, don't try to send another response
+   if (res.headersSent) {
+      return;
+   }
+
    //  Find a converter that matches the error
    for (const converter of errorConverters) {
       if (converter.test(err)) {

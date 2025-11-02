@@ -1,12 +1,16 @@
 import {
    Asterisk,
+   BadgeCheck,
+   ChevronsUpDown,
    DatabaseBackup,
    // Edit,
    FileText,
    Folder,
    FolderHeart,
+   LogOut,
    MessageSquarePlus,
    Search,
+   Lock,
 } from 'lucide-react';
 import {
    Sidebar,
@@ -21,6 +25,30 @@ import {
 } from '../ui/sidebar';
 // import { SearchForm } from '../search-form';
 import { cn } from '@/lib/utils';
+import {
+   DropdownMenu,
+   DropdownMenuContent,
+   DropdownMenuGroup,
+   DropdownMenuItem,
+   DropdownMenuLabel,
+   DropdownMenuSeparator,
+   DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useAuthStore } from '@/store/auth.store';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/hooks/use-auth';
+import { useState } from 'react';
+import {
+   AlertDialog,
+   AlertDialogAction,
+   AlertDialogCancel,
+   AlertDialogContent,
+   AlertDialogDescription,
+   AlertDialogFooter,
+   AlertDialogHeader,
+   AlertDialogTitle,
+} from '../ui/alert-dialog';
 
 const navigationItems = [
    {
@@ -63,6 +91,32 @@ export const AppSidebar = ({
    onViewChange: (view: string) => void;
 }) => {
    // Sidebar implementation
+   const { user } = useAuthStore();
+   const { logout } = useAuth();
+   const isMobile = useIsMobile();
+   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+   const userInitials = user?.name
+      ? user.name
+           .split(' ')
+           .map((n) => n[0])
+           .slice(0, 2)
+           .join('')
+           .toUpperCase()
+      : '';
+
+   const handleLogoutClick = () => {
+      setShowLogoutDialog(true);
+   };
+
+   const handleLogoutConfirm = async () => {
+      setShowLogoutDialog(false);
+      await logout();
+   };
+
+   const handleLogoutCancel = () => {
+      setShowLogoutDialog(false);
+   };
    return (
       <Sidebar collapsible="icon">
          <SidebarHeader>
@@ -113,17 +167,115 @@ export const AppSidebar = ({
          </SidebarContent>
 
          <SidebarFooter>
-            {/* {user && (
-          <NavUser
-            user={{
-              name: `${user.firstName} ${user.lastName}`.trim(),
-              email: user.email,
-              avatar: "",
-            }}
-          />
-        )} */}
-            Footer
+            {user && (
+               <SidebarMenu>
+                  <SidebarMenuItem>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                           <SidebarMenuButton
+                              size="lg"
+                              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                           >
+                              <Avatar className="h-8 w-8 rounded-lg">
+                                 <AvatarImage
+                                    src={user.avatarUrl}
+                                    alt={user.name}
+                                 />
+                                 <AvatarFallback className="rounded-lg">
+                                    {userInitials}
+                                 </AvatarFallback>
+                              </Avatar>
+                              <div className="grid flex-1 text-left text-sm leading-tight">
+                                 <span className="truncate font-medium">
+                                    {user.name}
+                                 </span>
+                                 <span className="truncate text-xs">
+                                    {user.email}
+                                 </span>
+                              </div>
+                              <ChevronsUpDown className="ml-auto size-4" />
+                           </SidebarMenuButton>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                           className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                           side={isMobile ? 'bottom' : 'right'}
+                           align="end"
+                           sideOffset={4}
+                        >
+                           <DropdownMenuLabel className="p-0 font-normal">
+                              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                                 <Avatar className="h-8 w-8 rounded-lg">
+                                    <AvatarImage
+                                       src={user.avatarUrl}
+                                       alt={user.name}
+                                    />
+                                    <AvatarFallback className="rounded-lg">
+                                       {userInitials}
+                                    </AvatarFallback>
+                                 </Avatar>
+                                 <div className="grid flex-1 text-left text-sm leading-tight">
+                                    <span className="truncate font-medium">
+                                       {user.name}
+                                    </span>
+                                    <span className="truncate text-xs">
+                                       {user.email}
+                                    </span>
+                                 </div>
+                              </div>
+                           </DropdownMenuLabel>
+                           <DropdownMenuSeparator />
+                           <DropdownMenuGroup>
+                              <DropdownMenuItem>
+                                 <BadgeCheck />
+                                 Account
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                              // onClick={() => navigate('/change-password')}
+                              >
+                                 <Lock />
+                                 Change Password
+                              </DropdownMenuItem>
+                           </DropdownMenuGroup>
+                           <DropdownMenuSeparator />
+                           <DropdownMenuItem
+                              variant="destructive"
+                              onClick={handleLogoutClick}
+                           >
+                              <LogOut />
+                              Log out
+                           </DropdownMenuItem>
+                        </DropdownMenuContent>
+                     </DropdownMenu>
+                  </SidebarMenuItem>
+               </SidebarMenu>
+            )}
          </SidebarFooter>
+
+         {/* Logout Confirmation Dialog */}
+         <AlertDialog
+            open={showLogoutDialog}
+            onOpenChange={setShowLogoutDialog}
+         >
+            <AlertDialogContent>
+               <AlertDialogHeader>
+                  <AlertDialogTitle>
+                     Are you sure you want to logout?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                     You will be logged out of your account and redirected to
+                     the login page.
+                  </AlertDialogDescription>
+               </AlertDialogHeader>
+               <AlertDialogFooter>
+                  <AlertDialogCancel onClick={handleLogoutCancel}>
+                     Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction onClick={handleLogoutConfirm}>
+                     Logout
+                  </AlertDialogAction>
+               </AlertDialogFooter>
+            </AlertDialogContent>
+         </AlertDialog>
       </Sidebar>
    );
 };
