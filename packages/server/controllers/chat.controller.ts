@@ -9,8 +9,9 @@ export class ChatController extends BaseController {
    }
 
    handleMessage = async (req: Request, res: Response, next: NextFunction) => {
-      const { prompt, conversationId, userId, senderId } = req.body;
-      const actualUserId = userId || senderId;
+      console.log('Handle message :', req.body);
+      const { prompt, conversationId, senderId } = req.body;
+      const actualUserId = senderId;
 
       this.handleRequest(req, res, next, async () => {
          return this.chatService.sendMessage(
@@ -26,15 +27,10 @@ export class ChatController extends BaseController {
       res: Response,
       next: NextFunction
    ) => {
-      console.log('body', req.body);
+      console.log('stream', req.body);
       try {
-         const { prompt, conversationId, userId, senderId } = req.body;
-         const actualUserId = userId || senderId;
-
-         if (!actualUserId) {
-            res.status(400).json({ error: 'userId or senderId is required' });
-            return;
-         }
+         const { prompt, conversationId, senderId } = req.body;
+         const actualUserId = senderId;
 
          res.writeHead(200, {
             'Content-Type': 'text/event-stream',
@@ -97,7 +93,7 @@ export class ChatController extends BaseController {
       }
    };
 
-   // Méthode pour récupérer l'historique des conversations
+   // Method for retrieving conversation history
    getConversations = async (
       req: Request,
       res: Response,
@@ -120,7 +116,6 @@ export class ChatController extends BaseController {
       });
    };
 
-   // Méthode pour supprimer une conversation
    deleteConversation = async (
       req: Request,
       res: Response,
@@ -129,9 +124,15 @@ export class ChatController extends BaseController {
       const { id } = req.params;
 
       this.handleRequest(req, res, next, async () => {
-         // Implémentez cette méthode dans votre service si nécessaire
-         // return this.chatService.deleteConversation(id, req.user.id);
-         throw new Error('Not implemented');
+         return this.chatService.deleteConversation(id!);
+      });
+   };
+
+   toggleFavorite = async (req: Request, res: Response, next: NextFunction) => {
+      const { conversationId, isFavorite } = req.body;
+
+      this.handleRequest(req, res, next, async () => {
+         return this.chatService.toggleFavorite(conversationId!, isFavorite);
       });
    };
 

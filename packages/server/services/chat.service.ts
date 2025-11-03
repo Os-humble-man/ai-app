@@ -310,4 +310,15 @@ Titre:`;
          );
       }
    }
+
+   async deleteConversation(conversationId: string) {
+      return this.conversationRepository.deleteConversation(conversationId);
+   }
+
+   async toggleFavorite(conversationId: string, isFavorite: boolean) {
+      return this.conversationRepository.setConversationFavorite(
+         conversationId,
+         isFavorite
+      );
+   }
 }

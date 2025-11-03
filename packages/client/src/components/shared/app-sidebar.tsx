@@ -12,8 +12,8 @@ import {
    MessageSquarePlus,
    Search,
    Lock,
-   Star,
    Trash2,
+   Heart,
 } from 'lucide-react';
 import {
    Sidebar,
@@ -125,6 +125,9 @@ export const AppSidebar = ({
       useConversations(user?.id);
    const toggleFavoriteMutation = useToggleFavorite(user?.id);
    const deleteConversationMutation = useDeleteConversation(user?.id);
+   const favoritesConversations = conversations?.filter(
+      (item) => item.isFavorite === true
+   );
 
    const userInitials = user?.name
       ? user.name
@@ -149,8 +152,6 @@ export const AppSidebar = ({
    };
 
    const handleSelectConversation = (conversationId: string) => {
-      // Handle conversation selection logic here
-      console.log('Selected conversation ID:', conversationId);
       navigation(`/chat/${conversationId}`);
    };
 
@@ -159,7 +160,7 @@ export const AppSidebar = ({
       conversationId: string,
       isFavorite: boolean
    ) => {
-      e.stopPropagation(); // Empêcher la navigation
+      e.stopPropagation();
       toggleFavoriteMutation.mutate({
          conversationId,
          isFavorite: !isFavorite,
@@ -170,7 +171,7 @@ export const AppSidebar = ({
       e: React.MouseEvent,
       conversationId: string
    ) => {
-      e.stopPropagation(); // Empêcher la navigation
+      e.stopPropagation();
       setConversationToDelete(conversationId);
       setShowDeleteDialog(true);
    };
@@ -297,7 +298,7 @@ export const AppSidebar = ({
                                                                         : 'Add to favorites'
                                                                   }
                                                                >
-                                                                  <Star
+                                                                  <Heart
                                                                      className={cn(
                                                                         'h-3 w-3',
                                                                         conv.isFavorite &&
@@ -326,6 +327,72 @@ export const AppSidebar = ({
                                              ) : (
                                                 <p className="text-xs py-2">
                                                    No conversations yet
+                                                </p>
+                                             )
+                                          ) : sectionKey === 'favorites' ? (
+                                             isConversationsLoading ? (
+                                                <p className="text-xs py-2">
+                                                   Loading...
+                                                </p>
+                                             ) : favoritesConversations &&
+                                               favoritesConversations.length >
+                                                  0 ? (
+                                                <div className="space-y-1">
+                                                   {favoritesConversations.map(
+                                                      (conv) => (
+                                                         <div
+                                                            key={conv.id}
+                                                            className="group/item flex items-center gap-1 w-full px-2 py-1.5 rounded-md hover:bg-accent transition-colors"
+                                                         >
+                                                            <button
+                                                               className="flex-1 text-left text-xs truncate"
+                                                               onClick={() =>
+                                                                  handleSelectConversation(
+                                                                     conv.id
+                                                                  )
+                                                               }
+                                                            >
+                                                               {conv.title ||
+                                                                  'Untitled conversation'}
+                                                            </button>
+                                                            <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                               <button
+                                                                  onClick={(
+                                                                     e
+                                                                  ) =>
+                                                                     handleToggleFavorite(
+                                                                        e,
+                                                                        conv.id,
+                                                                        conv.isFavorite
+                                                                     )
+                                                                  }
+                                                                  className="p-1 rounded hover:bg-accent-foreground/10 text-yellow-500"
+                                                                  title="Remove from favorites"
+                                                               >
+                                                                  <Heart className="h-3 w-3 fill-current" />
+                                                               </button>
+                                                               <button
+                                                                  onClick={(
+                                                                     e
+                                                                  ) =>
+                                                                     handleDeleteConversation(
+                                                                        e,
+                                                                        conv.id
+                                                                     )
+                                                                  }
+                                                                  className="p-1 rounded hover:bg-destructive/10 hover:text-destructive"
+                                                                  title="Delete conversation"
+                                                               >
+                                                                  <Trash2 className="h-3 w-3" />
+                                                               </button>
+                                                            </div>
+                                                         </div>
+                                                      )
+                                                   )}
+                                                </div>
+                                             ) : (
+                                                <p className="text-xs py-2">
+                                                   No favorite conversations yet
                                                 </p>
                                              )
                                           ) : (

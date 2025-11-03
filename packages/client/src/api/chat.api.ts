@@ -51,6 +51,26 @@ export const chatApi = {
       return apiClient.post<Conversation[]>('/chat/conversations', { userId });
    },
 
+   /**
+    * Delete a conversation by ID
+    */
+   deleteConversation: async (conversationId: string) => {
+      return apiClient.delete(`/chat/conversation/${conversationId}`);
+   },
+
+   /**
+    * Toggle favorite status of a conversation
+    */
+   toggleFavorite: async (conversationId: string, isFavorite: boolean) => {
+      return apiClient.post('/chat/conversation/toggle-favorite', {
+         conversationId,
+         isFavorite,
+      });
+   },
+
+   /**
+    * Get a conversation by ID
+    */
    getConversation: async (conversationId: string) => {
       return apiClient.get<ConversationWithMessages>(
          `/chat/conversation/${conversationId}`

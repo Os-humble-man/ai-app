@@ -168,6 +168,9 @@ export class ConversationRepository extends BaseRepository {
       await this.prisma.conversation.delete({
          where: { id: conversationId },
       });
+      await this.prisma.message.deleteMany({
+         where: { conversationId },
+      });
    }
 
    async setConversationTitle(

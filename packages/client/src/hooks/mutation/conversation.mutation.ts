@@ -98,13 +98,9 @@ export const useToggleFavorite = (userId?: string) => {
          conversationId: string;
          isFavorite: boolean;
       }) => {
-         // TODO: Replace with actual API call when backend is ready
-         console.log(`Toggle favorite for ${conversationId} to ${isFavorite}`);
-         return Promise.resolve();
-         // return chatApi.toggleFavorite(conversationId, isFavorite);
+         return chatApi.toggleFavorite(conversationId, isFavorite);
       },
       onSuccess: () => {
-         // Invalider les conversations pour rafraîchir la liste
          queryClient.invalidateQueries({
             queryKey: ['conversations', userId],
          });
@@ -120,13 +116,9 @@ export const useDeleteConversation = (userId?: string) => {
 
    return useMutation({
       mutationFn: async (conversationId: string) => {
-         // TODO: Replace with actual API call when backend is ready
-         console.log(`Delete conversation ${conversationId}`);
-         return Promise.resolve();
-         // return chatApi.deleteConversation(conversationId);
+         return chatApi.deleteConversation(conversationId);
       },
       onSuccess: () => {
-         // Invalider les conversations pour rafraîchir la liste
          queryClient.invalidateQueries({
             queryKey: ['conversations', userId],
          });
