@@ -4,7 +4,6 @@ import {
    ChevronRight,
    ChevronsUpDown,
    DatabaseBackup,
-   // Edit,
    FileText,
    Folder,
    FolderHeart,
@@ -12,8 +11,8 @@ import {
    MessageSquarePlus,
    Search,
    Lock,
-   Trash2,
-   Heart,
+   Plus,
+   FolderOpen,
 } from 'lucide-react';
 import {
    Sidebar,
@@ -64,6 +63,8 @@ import {
    useToggleFavorite,
    useDeleteConversation,
 } from '@/hooks/mutation/conversation.mutation';
+import { ConversationDropdownMenu } from './conversation-dropdown-menu';
+import { InputDialog } from './input-dialog';
 
 const navigationItems = [
    {
@@ -111,6 +112,9 @@ export const AppSidebar = ({
    const isMobile = useIsMobile();
    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+   const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
+   const [showCreateTemplateDialog, setShowCreateTemplateDialog] =
+      useState(false);
    const [conversationToDelete, setConversationToDelete] = useState<
       string | null
    >(null);
@@ -128,6 +132,20 @@ export const AppSidebar = ({
    const favoritesConversations = conversations?.filter(
       (item) => item.isFavorite === true
    );
+
+   // Mock data for folders (TODO: Replace with real data from backend)
+   const [folders, setFolders] = useState([
+      { id: '1', name: 'Work', count: 5 },
+      { id: '2', name: 'Personal', count: 3 },
+      { id: '3', name: 'Projects', count: 8 },
+   ]);
+
+   // Mock data for templates (TODO: Replace with real data from backend)
+   const [templates, setTemplates] = useState([
+      { id: '1', name: 'Code Review', uses: 12 },
+      { id: '2', name: 'Meeting Notes', uses: 8 },
+      { id: '3', name: 'Bug Report', uses: 15 },
+   ]);
 
    const userInitials = user?.name
       ? user.name
@@ -187,6 +205,44 @@ export const AppSidebar = ({
    const handleDeleteCancel = () => {
       setShowDeleteDialog(false);
       setConversationToDelete(null);
+   };
+
+   const handleCreateFolder = () => {
+      setShowCreateFolderDialog(true);
+   };
+
+   const handleConfirmCreateFolder = (folderName: string) => {
+      const newFolder = {
+         id: `${Date.now()}`,
+         name: folderName,
+         count: 0,
+      };
+      setFolders([...folders, newFolder]);
+      console.log('Created folder:', newFolder);
+   };
+
+   const handleSelectFolder = (folderId: string) => {
+      // TODO: Implement folder selection and display conversations in that folder
+      console.log('Selected folder:', folderId);
+   };
+
+   const handleCreateTemplate = () => {
+      setShowCreateTemplateDialog(true);
+   };
+
+   const handleConfirmCreateTemplate = (templateName: string) => {
+      const newTemplate = {
+         id: `${Date.now()}`,
+         name: templateName,
+         uses: 0,
+      };
+      setTemplates([...templates, newTemplate]);
+      console.log('Created template:', newTemplate);
+   };
+
+   const handleSelectTemplate = (templateId: string) => {
+      // TODO: Implement template selection and use it
+      console.log('Selected template:', templateId);
    };
 
    return (
@@ -276,50 +332,18 @@ export const AppSidebar = ({
                                                                {conv.title ||
                                                                   'Untitled conversation'}
                                                             </button>
-                                                            <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                                               <button
-                                                                  onClick={(
-                                                                     e
-                                                                  ) =>
-                                                                     handleToggleFavorite(
-                                                                        e,
-                                                                        conv.id,
-                                                                        conv.isFavorite
-                                                                     )
+                                                            <div className="flex items-center opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                               <ConversationDropdownMenu
+                                                                  conversation={
+                                                                     conv
                                                                   }
-                                                                  className={cn(
-                                                                     'p-1 rounded hover:bg-accent-foreground/10',
-                                                                     conv.isFavorite &&
-                                                                        'text-yellow-500'
-                                                                  )}
-                                                                  title={
-                                                                     conv.isFavorite
-                                                                        ? 'Remove from favorites'
-                                                                        : 'Add to favorites'
+                                                                  onToggleFavorite={
+                                                                     handleToggleFavorite
                                                                   }
-                                                               >
-                                                                  <Heart
-                                                                     className={cn(
-                                                                        'h-3 w-3',
-                                                                        conv.isFavorite &&
-                                                                           'fill-current'
-                                                                     )}
-                                                                  />
-                                                               </button>
-                                                               <button
-                                                                  onClick={(
-                                                                     e
-                                                                  ) =>
-                                                                     handleDeleteConversation(
-                                                                        e,
-                                                                        conv.id
-                                                                     )
+                                                                  onDelete={
+                                                                     handleDeleteConversation
                                                                   }
-                                                                  className="p-1 rounded hover:bg-destructive/10 hover:text-destructive"
-                                                                  title="Delete conversation"
-                                                               >
-                                                                  <Trash2 className="h-3 w-3" />
-                                                               </button>
+                                                               />
                                                             </div>
                                                          </div>
                                                       ))}
@@ -355,36 +379,18 @@ export const AppSidebar = ({
                                                                {conv.title ||
                                                                   'Untitled conversation'}
                                                             </button>
-                                                            <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                                               <button
-                                                                  onClick={(
-                                                                     e
-                                                                  ) =>
-                                                                     handleToggleFavorite(
-                                                                        e,
-                                                                        conv.id,
-                                                                        conv.isFavorite
-                                                                     )
+                                                            <div className="flex items-center opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                               <ConversationDropdownMenu
+                                                                  conversation={
+                                                                     conv
                                                                   }
-                                                                  className="p-1 rounded hover:bg-accent-foreground/10 text-yellow-500"
-                                                                  title="Remove from favorites"
-                                                               >
-                                                                  <Heart className="h-3 w-3 fill-current" />
-                                                               </button>
-                                                               <button
-                                                                  onClick={(
-                                                                     e
-                                                                  ) =>
-                                                                     handleDeleteConversation(
-                                                                        e,
-                                                                        conv.id
-                                                                     )
+                                                                  onToggleFavorite={
+                                                                     handleToggleFavorite
                                                                   }
-                                                                  className="p-1 rounded hover:bg-destructive/10 hover:text-destructive"
-                                                                  title="Delete conversation"
-                                                               >
-                                                                  <Trash2 className="h-3 w-3" />
-                                                               </button>
+                                                                  onDelete={
+                                                                     handleDeleteConversation
+                                                                  }
+                                                               />
                                                             </div>
                                                          </div>
                                                       )
@@ -395,6 +401,84 @@ export const AppSidebar = ({
                                                    No favorite conversations yet
                                                 </p>
                                              )
+                                          ) : sectionKey === 'folders' ? (
+                                             <div className="space-y-1">
+                                                {/* Create New Folder Button */}
+                                                <button
+                                                   onClick={handleCreateFolder}
+                                                   className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md hover:bg-accent transition-colors text-xs font-medium"
+                                                >
+                                                   <Plus className="h-4 w-4" />
+                                                   Create new folder
+                                                </button>
+
+                                                {/* Folders List */}
+                                                {folders.length > 0 ? (
+                                                   folders.map((folder) => (
+                                                      <div
+                                                         key={folder.id}
+                                                         className="group/item flex items-center gap-2 w-full px-2 py-1.5 rounded-md hover:bg-accent transition-colors cursor-pointer"
+                                                         onClick={() =>
+                                                            handleSelectFolder(
+                                                               folder.id
+                                                            )
+                                                         }
+                                                      >
+                                                         <FolderOpen className="h-4 w-4 flex-shrink-0" />
+                                                         <span className="flex-1 text-xs truncate">
+                                                            {folder.name}
+                                                         </span>
+                                                         <span className="text-xs text-muted-foreground">
+                                                            {folder.count}
+                                                         </span>
+                                                      </div>
+                                                   ))
+                                                ) : (
+                                                   <p className="text-xs py-2 px-2 text-muted-foreground">
+                                                      No folders yet
+                                                   </p>
+                                                )}
+                                             </div>
+                                          ) : sectionKey === 'templates' ? (
+                                             <div className="space-y-1">
+                                                {/* Create New Template Button */}
+                                                <button
+                                                   onClick={
+                                                      handleCreateTemplate
+                                                   }
+                                                   className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md hover:bg-accent transition-colors text-xs font-medium"
+                                                >
+                                                   <Plus className="h-4 w-4" />
+                                                   Create new template
+                                                </button>
+
+                                                {/* Templates List */}
+                                                {templates.length > 0 ? (
+                                                   templates.map((template) => (
+                                                      <div
+                                                         key={template.id}
+                                                         className="group/item flex items-center gap-2 w-full px-2 py-1.5 rounded-md hover:bg-accent transition-colors cursor-pointer"
+                                                         onClick={() =>
+                                                            handleSelectTemplate(
+                                                               template.id
+                                                            )
+                                                         }
+                                                      >
+                                                         <FileText className="h-4 w-4 flex-shrink-0" />
+                                                         <span className="flex-1 text-xs truncate">
+                                                            {template.name}
+                                                         </span>
+                                                         <span className="text-xs text-muted-foreground">
+                                                            {template.uses}
+                                                         </span>
+                                                      </div>
+                                                   ))
+                                                ) : (
+                                                   <p className="text-xs py-2 px-2 text-muted-foreground">
+                                                      No templates yet
+                                                   </p>
+                                                )}
+                                             </div>
                                           ) : (
                                              <p className="text-xs py-2">
                                                 No items yet
@@ -576,6 +660,30 @@ export const AppSidebar = ({
                </AlertDialogFooter>
             </AlertDialogContent>
          </AlertDialog>
+
+         {/* Create Folder Dialog */}
+         <InputDialog
+            open={showCreateFolderDialog}
+            onOpenChange={setShowCreateFolderDialog}
+            title="Create New Folder"
+            description="Enter a name for your new folder to organize your conversations."
+            inputLabel="Folder Name"
+            inputPlaceholder="e.g., Work, Personal, Projects"
+            onConfirm={handleConfirmCreateFolder}
+            confirmText="Create Folder"
+         />
+
+         {/* Create Template Dialog */}
+         <InputDialog
+            open={showCreateTemplateDialog}
+            onOpenChange={setShowCreateTemplateDialog}
+            title="Create New Template"
+            description="Enter a name for your new template to reuse conversation patterns."
+            inputLabel="Template Name"
+            inputPlaceholder="e.g., Code Review, Bug Report"
+            onConfirm={handleConfirmCreateTemplate}
+            confirmText="Create Template"
+         />
       </Sidebar>
    );
 };
