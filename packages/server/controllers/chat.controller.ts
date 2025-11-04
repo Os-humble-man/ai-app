@@ -2,7 +2,9 @@ import type { NextFunction, Request, Response } from 'express';
 import { ChatService } from '../services/chat.service';
 import { BaseController } from './base.controller';
 import { inject } from 'inversify';
+import { injectable } from 'inversify';
 
+@injectable()
 export class ChatController extends BaseController {
    constructor(@inject('ChatService') private chatService: ChatService) {
       super();

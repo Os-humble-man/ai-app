@@ -4,6 +4,7 @@ import { userRoutes } from './user.routes';
 import { chatRoutes } from './chat.routes';
 import { HttpStatus } from '../utils/HttpStatus';
 import { authRoutes } from './auth.routes';
+import { folderRoutes } from './folder.routes';
 
 const makeApiRouter = (app: Application) => {
    const rootRouter = Router();
@@ -21,6 +22,7 @@ const makeApiRouter = (app: Application) => {
    apiRouter.use('/users', userRoutes);
    apiRouter.use('/chat', chatRoutes);
    apiRouter.use('/auth', authRoutes);
+   apiRouter.use('/folder', folderRoutes);
 
    apiRouter.use((req, res) => {
       res.status(HttpStatus.NOT_FOUND).json({
