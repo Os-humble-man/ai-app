@@ -351,6 +351,10 @@ export const AppSidebar = ({
                                                                   onDelete={
                                                                      handleDeleteConversation
                                                                   }
+                                                                  folders={
+                                                                     foldersData ||
+                                                                     []
+                                                                  }
                                                                />
                                                             </div>
                                                          </div>
@@ -397,6 +401,10 @@ export const AppSidebar = ({
                                                                   }
                                                                   onDelete={
                                                                      handleDeleteConversation
+                                                                  }
+                                                                  folders={
+                                                                     foldersData ||
+                                                                     []
                                                                   }
                                                                />
                                                             </div>

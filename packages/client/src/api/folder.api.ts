@@ -1,6 +1,6 @@
 import apiClient from './apiClient';
 
-interface Folder {
+export interface Folder {
    id: string;
    userId: string;
    name: string;

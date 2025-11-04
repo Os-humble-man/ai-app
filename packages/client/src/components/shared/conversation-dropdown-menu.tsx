@@ -22,6 +22,7 @@ import {
    DropdownMenuPortal,
 } from '../ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import type { Folder as FolderList } from '@/api/folder.api';
 
 interface Conversation {
    id: string;
@@ -31,6 +32,7 @@ interface Conversation {
 
 interface ConversationDropdownMenuProps {
    conversation: Conversation;
+   folders: FolderList[];
    onToggleFavorite: (
       e: React.MouseEvent,
       conversationId: string,
@@ -38,13 +40,6 @@ interface ConversationDropdownMenuProps {
    ) => void;
    onDelete: (e: React.MouseEvent, conversationId: string) => void;
 }
-
-// Mock data for folders and templates (TODO: Replace with real data from backend)
-const folders = [
-   { id: '1', name: 'Work' },
-   { id: '2', name: 'Personal' },
-   { id: '3', name: 'Projects' },
-];
 
 const templates = [
    { id: '1', name: 'Code Review' },
@@ -56,6 +51,7 @@ export const ConversationDropdownMenu = ({
    conversation,
    onToggleFavorite,
    onDelete,
+   folders,
 }: ConversationDropdownMenuProps) => {
    return (
       <DropdownMenu>
