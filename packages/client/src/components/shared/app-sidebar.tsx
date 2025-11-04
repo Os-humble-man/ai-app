@@ -65,6 +65,7 @@ import {
 } from '@/hooks/mutation/conversation.mutation';
 import { ConversationDropdownMenu } from './conversation-dropdown-menu';
 import { InputDialog } from './input-dialog';
+import { SearchDialog } from './search-dialog';
 
 const navigationItems = [
    {
@@ -115,6 +116,7 @@ export const AppSidebar = ({
    const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
    const [showCreateTemplateDialog, setShowCreateTemplateDialog] =
       useState(false);
+   const [showSearchDialog, setShowSearchDialog] = useState(false);
    const [conversationToDelete, setConversationToDelete] = useState<
       string | null
    >(null);
@@ -504,6 +506,10 @@ export const AppSidebar = ({
                                     onClick={() => {
                                        if (sectionKey === 'new chat') {
                                           navigation('/');
+                                       } else if (
+                                          sectionKey === 'search chat'
+                                       ) {
+                                          setShowSearchDialog(true);
                                        } else {
                                           onViewChange(sectionKey);
                                        }
@@ -683,6 +689,14 @@ export const AppSidebar = ({
             inputPlaceholder="e.g., Code Review, Bug Report"
             onConfirm={handleConfirmCreateTemplate}
             confirmText="Create Template"
+         />
+
+         {/* Search Dialog */}
+         <SearchDialog
+            open={showSearchDialog}
+            onOpenChange={setShowSearchDialog}
+            conversations={conversations || []}
+            onSelectConversation={handleSelectConversation}
          />
       </Sidebar>
    );
