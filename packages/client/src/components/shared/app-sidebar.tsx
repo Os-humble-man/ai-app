@@ -63,6 +63,12 @@ import {
    useToggleFavorite,
    useDeleteConversation,
 } from '@/hooks/mutation/conversation.mutation';
+import {
+   useCreateFolder,
+   useUpdateFolder,
+   useDeleteFolder,
+} from '@/hooks/mutation/folder.mutation';
+import { useFolders } from '@/hooks/queries/folder.queries';
 import { ConversationDropdownMenu } from './conversation-dropdown-menu';
 import { InputDialog } from './input-dialog';
 import { SearchDialog } from './search-dialog';
@@ -135,12 +141,13 @@ export const AppSidebar = ({
       (item) => item.isFavorite === true
    );
 
-   // Mock data for folders (TODO: Replace with real data from backend)
-   const [folders, setFolders] = useState([
-      { id: '1', name: 'Work', count: 5 },
-      { id: '2', name: 'Personal', count: 3 },
-      { id: '3', name: 'Projects', count: 8 },
-   ]);
+   // Folders hooks
+   const { data: foldersData, isLoading: isFoldersLoading } = useFolders(
+      user?.id!
+   );
+   const createFolderMutation = useCreateFolder();
+   const updateFolderMutation = useUpdateFolder();
+   const deleteFolderMutation = useDeleteFolder();
 
    // Mock data for templates (TODO: Replace with real data from backend)
    const [templates, setTemplates] = useState([
@@ -214,13 +221,12 @@ export const AppSidebar = ({
    };
 
    const handleConfirmCreateFolder = (folderName: string) => {
-      const newFolder = {
-         id: `${Date.now()}`,
+      if (!user?.id) return;
+
+      createFolderMutation.mutate({
+         userId: user.id,
          name: folderName,
-         count: 0,
-      };
-      setFolders([...folders, newFolder]);
-      console.log('Created folder:', newFolder);
+      });
    };
 
    const handleSelectFolder = (folderId: string) => {
@@ -415,8 +421,13 @@ export const AppSidebar = ({
                                                 </button>
 
                                                 {/* Folders List */}
-                                                {folders.length > 0 ? (
-                                                   folders.map((folder) => (
+                                                {isFoldersLoading ? (
+                                                   <p className="text-xs py-2 px-2">
+                                                      Loading folders...
+                                                   </p>
+                                                ) : foldersData &&
+                                                  foldersData.length > 0 ? (
+                                                   foldersData.map((folder) => (
                                                       <div
                                                          key={folder.id}
                                                          className="group/item flex items-center gap-2 w-full px-2 py-1.5 rounded-md hover:bg-accent transition-colors cursor-pointer"
@@ -429,9 +440,6 @@ export const AppSidebar = ({
                                                          <FolderOpen className="h-4 w-4 flex-shrink-0" />
                                                          <span className="flex-1 text-xs truncate">
                                                             {folder.name}
-                                                         </span>
-                                                         <span className="text-xs text-muted-foreground">
-                                                            {folder.count}
                                                          </span>
                                                       </div>
                                                    ))

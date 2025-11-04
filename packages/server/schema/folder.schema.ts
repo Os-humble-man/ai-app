@@ -26,9 +26,14 @@ export const FolderSchema = {
          parentId: z.string('Invalid parent ID').optional(),
       }),
    },
-   idParam: {
+   updateFolderParam: {
       params: z.object({
          id: z.string('Invalid folder ID'),
+      }),
+   },
+   idParam: {
+      params: z.object({
+         userId: z.string('Invalid user ID'),
       }),
    },
 };
