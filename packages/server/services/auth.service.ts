@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import bcrypt from 'bcrypt';
 import { UserRepository } from '../repositories/user.repository';
-import type { CreateUserDto } from '../types/dtos/UserDto';
+import type { CreateUserDto } from '../types/dtos/user.dto';
 import { BusinessError } from '../utils/errors/BusinessError';
 import { HttpStatus } from '../utils/HttpStatus';
 import { NotFoundError } from '../utils/errors/NotFoundError';
