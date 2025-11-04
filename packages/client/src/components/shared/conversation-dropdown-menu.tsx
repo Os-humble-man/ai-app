@@ -23,6 +23,7 @@ import {
 } from '../ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { Folder as FolderList } from '@/api/folder.api';
+import { useMoveConversationToFolder } from '@/hooks/mutation/conversation.mutation';
 
 interface Conversation {
    id: string;
@@ -39,6 +40,8 @@ interface ConversationDropdownMenuProps {
       isFavorite: boolean
    ) => void;
    onDelete: (e: React.MouseEvent, conversationId: string) => void;
+   onCreateFolder: (e: React.MouseEvent) => void;
+   userId?: string;
 }
 
 const templates = [
@@ -52,7 +55,26 @@ export const ConversationDropdownMenu = ({
    onToggleFavorite,
    onDelete,
    folders,
+   onCreateFolder,
+   userId,
 }: ConversationDropdownMenuProps) => {
+   const moveConversationMutation = useMoveConversationToFolder(userId);
+
+   const handleMoveToFolder = (e: React.MouseEvent, folderId: string) => {
+      e.stopPropagation();
+      moveConversationMutation.mutate(
+         { conversationId: conversation.id, folderId },
+         {
+            onSuccess: () => {
+               console.log('Conversation moved to folder successfully');
+            },
+            onError: (error) => {
+               console.error('Failed to move conversation:', error);
+            },
+         }
+      );
+   };
+
    return (
       <DropdownMenu>
          <DropdownMenuTrigger asChild>
@@ -96,8 +118,7 @@ export const ConversationDropdownMenu = ({
                      <DropdownMenuItem
                         onClick={(e) => {
                            e.stopPropagation();
-                           // TODO: Implement create new folder
-                           console.log('Create new folder', conversation.id);
+                           onCreateFolder(e);
                         }}
                         className="font-medium"
                      >
@@ -108,15 +129,7 @@ export const ConversationDropdownMenu = ({
                      {folders.map((folder) => (
                         <DropdownMenuItem
                            key={folder.id}
-                           onClick={(e) => {
-                              e.stopPropagation();
-                              // TODO: Implement move to folder
-                              console.log(
-                                 'Move to folder',
-                                 conversation.id,
-                                 folder.name
-                              );
-                           }}
+                           onClick={(e) => handleMoveToFolder(e, folder.id)}
                         >
                            <Folder className="h-4 w-4" />
                            {folder.name}

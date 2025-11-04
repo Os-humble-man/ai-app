@@ -137,6 +137,20 @@ export class ChatController extends BaseController {
          return this.chatService.toggleFavorite(conversationId!, isFavorite);
       });
    };
+   moveConversationToFolder = async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+   ) => {
+      const { conversationId, folderId } = req.body;
+
+      this.handleRequest(req, res, next, async () => {
+         return this.chatService.moveConversationToFolder(
+            conversationId!,
+            folderId || null
+         );
+      });
+   };
 
    private generateConversationId(): string {
       return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

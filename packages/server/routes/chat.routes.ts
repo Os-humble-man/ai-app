@@ -49,4 +49,9 @@ chatRoutes.post(
    chatController.toggleFavorite
 );
 
+chatRoutes.post(
+   '/conversation/move-folder',
+   chatController.moveConversationToFolder
+);
+
 export { chatRoutes };

@@ -189,4 +189,22 @@ export class ConversationRepository extends BaseRepository {
          data: { isFavorite },
       });
    }
+
+   async moveConversationToFolder(
+      conversationId: string,
+      folderId: string | null
+   ) {
+      return this.prisma.conversation.update({
+         where: { id: conversationId },
+         data: { folderId },
+      });
+   }
+
+   async getConversationFolder(conversationId: string) {
+      const conversation = await this.prisma.conversation.findUnique({
+         where: { id: conversationId },
+         select: { folderId: true },
+      });
+      return conversation?.folderId || null;
+   }
 }

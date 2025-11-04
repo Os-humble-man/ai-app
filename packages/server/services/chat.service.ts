@@ -321,4 +321,21 @@ Titre:`;
          isFavorite
       );
    }
+
+   async moveConversationToFolder(
+      conversationId: string,
+      folderId: string | null
+   ) {
+      const currentFolderId =
+         await this.conversationRepository.getConversationFolder(
+            conversationId
+         );
+      if (currentFolderId === folderId) {
+         return;
+      }
+      return this.conversationRepository.moveConversationToFolder(
+         conversationId,
+         folderId
+      );
+   }
 }

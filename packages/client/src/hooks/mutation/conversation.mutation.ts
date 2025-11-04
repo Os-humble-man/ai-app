@@ -128,3 +128,27 @@ export const useDeleteConversation = (userId?: string) => {
       },
    });
 };
+
+export const useMoveConversationToFolder = (userId?: string) => {
+   const queryClient = useQueryClient();
+
+   return useMutation({
+      mutationFn: async ({
+         conversationId,
+         folderId,
+      }: {
+         conversationId: string;
+         folderId: string | null;
+      }) => {
+         return chatApi.moveConversationToFolder(conversationId, folderId);
+      },
+      onSuccess: () => {
+         queryClient.invalidateQueries({
+            queryKey: ['conversations', userId],
+         });
+      },
+      onError: (error) => {
+         console.error('Error moving conversation:', error);
+      },
+   });
+};

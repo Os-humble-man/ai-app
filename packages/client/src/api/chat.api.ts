@@ -69,6 +69,19 @@ export const chatApi = {
    },
 
    /**
+    * Move a conversation to a different folder
+    */
+   moveConversationToFolder: async (
+      conversationId: string,
+      folderId: string | null
+   ) => {
+      return apiClient.post('/chat/conversation/move-folder', {
+         conversationId,
+         folderId,
+      });
+   },
+
+   /**
     * Get a conversation by ID
     */
    getConversation: async (conversationId: string) => {

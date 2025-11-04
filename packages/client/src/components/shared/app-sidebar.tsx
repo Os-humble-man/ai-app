@@ -355,6 +355,12 @@ export const AppSidebar = ({
                                                                      foldersData ||
                                                                      []
                                                                   }
+                                                                  onCreateFolder={
+                                                                     handleCreateFolder
+                                                                  }
+                                                                  userId={
+                                                                     user?.id
+                                                                  }
                                                                />
                                                             </div>
                                                          </div>
@@ -405,6 +411,12 @@ export const AppSidebar = ({
                                                                   folders={
                                                                      foldersData ||
                                                                      []
+                                                                  }
+                                                                  onCreateFolder={
+                                                                     handleCreateFolder
+                                                                  }
+                                                                  userId={
+                                                                     user?.id
                                                                   }
                                                                />
                                                             </div>
