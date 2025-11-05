@@ -72,6 +72,7 @@ import { useFolders } from '@/hooks/queries/folder.queries';
 import { ConversationDropdownMenu } from './conversation-dropdown-menu';
 import { InputDialog } from './input-dialog';
 import { SearchDialog } from './search-dialog';
+import { useMemo } from 'react';
 
 const navigationItems = [
    {
@@ -133,6 +134,9 @@ export const AppSidebar = ({
       folders: false,
       templates: false,
    });
+   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(
+      null
+   );
    const { data: conversations, isLoading: isConversationsLoading } =
       useConversations(user?.id);
    const toggleFavoriteMutation = useToggleFavorite(user?.id);
@@ -140,6 +144,26 @@ export const AppSidebar = ({
    const favoritesConversations = conversations?.filter(
       (item) => item.isFavorite === true
    );
+
+   // Compter les conversations par dossier
+   const folderConversationCounts = useMemo(() => {
+      const counts: Record<string, number> = {};
+      conversations?.forEach((conv) => {
+         if (conv.folderId) {
+            counts[conv.folderId] = (counts[conv.folderId] || 0) + 1;
+         }
+      });
+      return counts;
+   }, [conversations]);
+
+   // Récupérer les conversations du dossier sélectionné
+   const selectedFolderConversations = useMemo(() => {
+      if (!selectedFolderId) return [];
+      return (
+         conversations?.filter((conv) => conv.folderId === selectedFolderId) ||
+         []
+      );
+   }, [conversations, selectedFolderId]);
 
    // Folders hooks
    const { data: foldersData, isLoading: isFoldersLoading } = useFolders(
@@ -230,8 +254,12 @@ export const AppSidebar = ({
    };
 
    const handleSelectFolder = (folderId: string) => {
-      // TODO: Implement folder selection and display conversations in that folder
-      console.log('Selected folder:', folderId);
+      // Toggle: si le dossier est déjà sélectionné, le désélectionner
+      if (selectedFolderId === folderId) {
+         setSelectedFolderId(null);
+      } else {
+         setSelectedFolderId(folderId);
+      }
    };
 
    const handleCreateTemplate = () => {
@@ -447,22 +475,119 @@ export const AppSidebar = ({
                                                    </p>
                                                 ) : foldersData &&
                                                   foldersData.length > 0 ? (
-                                                   foldersData.map((folder) => (
-                                                      <div
-                                                         key={folder.id}
-                                                         className="group/item flex items-center gap-2 w-full px-2 py-1.5 rounded-md hover:bg-accent transition-colors cursor-pointer"
-                                                         onClick={() =>
-                                                            handleSelectFolder(
-                                                               folder.id
-                                                            )
-                                                         }
-                                                      >
-                                                         <FolderOpen className="h-4 w-4 flex-shrink-0" />
-                                                         <span className="flex-1 text-xs truncate">
-                                                            {folder.name}
-                                                         </span>
-                                                      </div>
-                                                   ))
+                                                   foldersData.map((folder) => {
+                                                      const conversationCount =
+                                                         folderConversationCounts[
+                                                            folder.id
+                                                         ] || 0;
+                                                      const isSelected =
+                                                         selectedFolderId ===
+                                                         folder.id;
+
+                                                      return (
+                                                         <div
+                                                            key={folder.id}
+                                                            className="space-y-1"
+                                                         >
+                                                            {/* Folder Item */}
+                                                            <div
+                                                               className={cn(
+                                                                  'group/item flex items-center gap-2 w-full px-2 py-1.5 rounded-md hover:bg-accent transition-colors cursor-pointer',
+                                                                  isSelected &&
+                                                                     'bg-accent'
+                                                               )}
+                                                               onClick={() =>
+                                                                  handleSelectFolder(
+                                                                     folder.id
+                                                                  )
+                                                               }
+                                                            >
+                                                               <FolderOpen className="h-4 w-4 flex-shrink-0" />
+                                                               <span className="flex-1 text-xs truncate">
+                                                                  {folder.name}
+                                                               </span>
+                                                               {conversationCount >
+                                                                  0 && (
+                                                                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground">
+                                                                     {
+                                                                        conversationCount
+                                                                     }
+                                                                  </span>
+                                                               )}
+                                                            </div>
+
+                                                            {/* Conversations in Folder */}
+                                                            {isSelected &&
+                                                               selectedFolderConversations.length >
+                                                                  0 && (
+                                                                  <div className="ml-6 space-y-1 border-l pl-2">
+                                                                     {selectedFolderConversations.map(
+                                                                        (
+                                                                           conv
+                                                                        ) => (
+                                                                           <div
+                                                                              key={
+                                                                                 conv.id
+                                                                              }
+                                                                              className="group/conv flex items-center gap-1 w-full px-2 py-1.5 rounded-md hover:bg-accent/50 transition-colors"
+                                                                           >
+                                                                              <button
+                                                                                 className="flex-1 text-left text-xs truncate"
+                                                                                 onClick={(
+                                                                                    e
+                                                                                 ) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleSelectConversation(
+                                                                                       conv.id
+                                                                                    );
+                                                                                 }}
+                                                                              >
+                                                                                 {conv.title ||
+                                                                                    'Untitled conversation'}
+                                                                              </button>
+                                                                              <div className="flex items-center opacity-0 group-hover/conv:opacity-100 transition-opacity">
+                                                                                 <ConversationDropdownMenu
+                                                                                    conversation={
+                                                                                       conv
+                                                                                    }
+                                                                                    onToggleFavorite={
+                                                                                       handleToggleFavorite
+                                                                                    }
+                                                                                    onDelete={
+                                                                                       handleDeleteConversation
+                                                                                    }
+                                                                                    folders={
+                                                                                       foldersData ||
+                                                                                       []
+                                                                                    }
+                                                                                    onCreateFolder={
+                                                                                       handleCreateFolder
+                                                                                    }
+                                                                                    userId={
+                                                                                       user?.id
+                                                                                    }
+                                                                                 />
+                                                                              </div>
+                                                                           </div>
+                                                                        )
+                                                                     )}
+                                                                  </div>
+                                                               )}
+
+                                                            {/* Empty state when folder is selected but has no conversations */}
+                                                            {isSelected &&
+                                                               selectedFolderConversations.length ===
+                                                                  0 && (
+                                                                  <p className="ml-6 text-xs py-2 px-2 text-muted-foreground">
+                                                                     No
+                                                                     conversations
+                                                                     in this
+                                                                     folder
+                                                                  </p>
+                                                               )}
+                                                         </div>
+                                                      );
+                                                   })
                                                 ) : (
                                                    <p className="text-xs py-2 px-2 text-muted-foreground">
                                                       No folders yet

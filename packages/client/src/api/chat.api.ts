@@ -52,6 +52,36 @@ export const chatApi = {
    },
 
    /**
+    * Get conversations that are NOT in any folder (recent conversations)
+    */
+   getConversationsWithoutFolder: async (userId: string) => {
+      return apiClient.post<Conversation[]>(
+         '/chat/conversations/without-folder',
+         { userId }
+      );
+   },
+
+   /**
+    * Get conversations in a specific folder
+    */
+   getConversationsByFolder: async (userId: string, folderId: string) => {
+      return apiClient.post<Conversation[]>(
+         `/chat/conversations/folder/${folderId}`,
+         { userId }
+      );
+   },
+
+   /**
+    * Get conversations grouped by folder status
+    */
+   getConversationsGrouped: async (userId: string) => {
+      return apiClient.post<{
+         withFolder: Conversation[];
+         withoutFolder: Conversation[];
+      }>('/chat/conversations/grouped', { userId });
+   },
+
+   /**
     * Delete a conversation by ID
     */
    deleteConversation: async (conversationId: string) => {

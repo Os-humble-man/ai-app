@@ -146,9 +146,59 @@ export class ConversationRepository extends BaseRepository {
 
    async listUserConversations(userId: string) {
       return this.prisma.conversation.findMany({
+         include: {
+            folder: true,
+         },
          where: { userId },
          orderBy: { updatedAt: 'desc' },
       });
+   }
+
+   /**
+    * Get conversations that are NOT in any folder (recent conversations)
+    */
+   async listUserConversationsWithoutFolder(userId: string) {
+      return this.prisma.conversation.findMany({
+         where: {
+            userId,
+            folderId: null,
+         },
+         orderBy: { updatedAt: 'desc' },
+      });
+   }
+
+   /**
+    * Get conversations in a specific folder
+    */
+   async listConversationsByFolder(userId: string, folderId: string) {
+      return this.prisma.conversation.findMany({
+         where: {
+            userId,
+            folderId,
+         },
+         orderBy: { updatedAt: 'desc' },
+      });
+   }
+
+   /**
+    * Get conversations grouped by folder status
+    * Returns: { withFolder: Conversation[], withoutFolder: Conversation[] }
+    */
+   async listUserConversationsGrouped(userId: string) {
+      const allConversations = await this.prisma.conversation.findMany({
+         include: {
+            folder: true,
+         },
+         where: { userId },
+         orderBy: { updatedAt: 'desc' },
+      });
+
+      return {
+         withFolder: allConversations.filter((conv) => conv.folderId !== null),
+         withoutFolder: allConversations.filter(
+            (conv) => conv.folderId === null
+         ),
+      };
    }
 
    async getUserConversationById(conversationId: string) {

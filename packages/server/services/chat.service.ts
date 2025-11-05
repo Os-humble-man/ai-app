@@ -92,6 +92,23 @@ Titre:`;
       return this.conversationRepository.listUserConversations(userId);
    }
 
+   async getConversationsWithoutFolder(userId: string) {
+      return this.conversationRepository.listUserConversationsWithoutFolder(
+         userId
+      );
+   }
+
+   async getConversationsByFolder(userId: string, folderId: string) {
+      return this.conversationRepository.listConversationsByFolder(
+         userId,
+         folderId
+      );
+   }
+
+   async getConversationsGrouped(userId: string) {
+      return this.conversationRepository.listUserConversationsGrouped(userId);
+   }
+
    async getUserConversationById(conversationId: string) {
       return this.conversationRepository.getUserConversationById(
          conversationId

@@ -28,6 +28,27 @@ chatRoutes.post(
    chatController.getConversations
 );
 
+// POST /chat/conversations/without-folder - Get conversations not in any folder
+chatRoutes.post(
+   '/conversations/without-folder',
+   validate(ConversationSchema.getConversation),
+   chatController.getConversationsWithoutFolder
+);
+
+// POST /chat/conversations/folder/:folderId - Get conversations by folder
+chatRoutes.post(
+   '/conversations/folder/:folderId',
+   validate(ConversationSchema.getConversation),
+   chatController.getConversationsByFolder
+);
+
+// POST /chat/conversations/grouped - Get conversations grouped by folder status
+chatRoutes.post(
+   '/conversations/grouped',
+   validate(ConversationSchema.getConversation),
+   chatController.getConversationsGrouped
+);
+
 // GET /chat/conversation/:id - Get conversation by ID
 chatRoutes.get(
    '/conversation/:id',

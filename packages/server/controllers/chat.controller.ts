@@ -106,6 +106,42 @@ export class ChatController extends BaseController {
       });
    };
 
+   // Get conversations without folder (recent conversations)
+   getConversationsWithoutFolder = async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+   ) => {
+      this.handleRequest(req, res, next, async () => {
+         return this.chatService.getConversationsWithoutFolder(req.body.userId);
+      });
+   };
+
+   // Get conversations by folder
+   getConversationsByFolder = async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+   ) => {
+      const { folderId } = req.params;
+      const { userId } = req.body;
+
+      this.handleRequest(req, res, next, async () => {
+         return this.chatService.getConversationsByFolder(userId, folderId!);
+      });
+   };
+
+   // Get conversations grouped by folder status
+   getConversationsGrouped = async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+   ) => {
+      this.handleRequest(req, res, next, async () => {
+         return this.chatService.getConversationsGrouped(req.body.userId);
+      });
+   };
+
    getConversation = async (
       req: Request,
       res: Response,

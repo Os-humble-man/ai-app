@@ -28,6 +28,38 @@ export class FolderRepository extends BaseRepository {
       });
    };
 
+   /** Get folders by user ID with conversation count */
+   getByUserIdWithCount = async (userId: string) => {
+      return this.prisma.folder.findMany({
+         where: {
+            userId,
+         },
+         include: {
+            _count: {
+               select: {
+                  conversations: true,
+               },
+            },
+         },
+      });
+   };
+
+   /** Get a single folder with its conversations */
+   getByIdWithConversations = async (folderId: string) => {
+      return this.prisma.folder.findUnique({
+         where: {
+            id: folderId,
+         },
+         include: {
+            conversations: {
+               orderBy: {
+                  updatedAt: 'desc',
+               },
+            },
+         },
+      });
+   };
+
    /** Update folder by ID */
    updateById = async (id: string, folder: UpdateFolderDto) => {
       return this.prisma.folder.update({
