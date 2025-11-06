@@ -53,12 +53,13 @@ model Conversation {
   isPublic   Boolean  @default(false) @map("is_public")
   shareId    String?  @unique @map("share_id")
 
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  folder    Folder?     @relation(fields: [folderId], references: [id])
-  messages  Message[]
-  shares    Share[]
-  exports   Export[]
-  analytics Analytics[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder       Folder?       @relation(fields: [folderId], references: [id])
+  messages     Message[]
+  shares       Share[]
+  exports      Export[]
+  docCitations DocCitation[]
+  analytics    Analytics[]
 
   @@map("conversations")
 }
@@ -188,6 +189,35 @@ model Share {
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@map("shares")
+}
+
+model DocVector {
+  id         String   @id @default(cuid())
+  docId      String
+  title      String
+  chunkIndex Int
+  content    String
+  metadata   Json?
+  embedding  Bytes
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  citations DocCitation[]
+
+  @@map("docs_vectors")
+}
+
+model DocCitation {
+  id             String  @id @default(cuid())
+  conversationId String  @map("conversation_id")
+  docVectorId    String  @map("doc_vector_id")
+  relevance      Float
+  quotedText     String?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  docVector    DocVector    @relation(fields: [docVectorId], references: [id], onDelete: Cascade)
+
+  @@map("doc_citations")
 }
 
 enum Role {

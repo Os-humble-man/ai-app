@@ -86,8 +86,6 @@ class ApiClient {
             if (token && !(config as RequestConfig).skipAuth) {
                config.headers.Authorization = `Bearer ${token}`;
             }
-
-            // Log en développement
             if (
                (
                   (globalThis as any)?.process?.env?.NODE_ENV || ''
@@ -110,7 +108,6 @@ class ApiClient {
       // Response interceptor
       this.axiosInstance.interceptors.response.use(
          (response: AxiosResponse) => {
-            // Log en développement
             if (
                (
                   (globalThis as any)?.process?.env?.NODE_ENV || ''
@@ -131,7 +128,6 @@ class ApiClient {
                _retryCount?: number;
             };
 
-            // Gestion des retries
             if (originalRequest?.retry !== false && this.shouldRetry(error)) {
                originalRequest._retryCount =
                   (originalRequest._retryCount || 0) + 1;
@@ -165,7 +161,6 @@ class ApiClient {
       const { status, data, headers } = error.response;
       let message = 'An error occurred';
 
-      // Extraction du message d'erreur
       if (typeof data === 'string') {
          message = data;
       } else if (data && typeof data === 'object') {
@@ -182,7 +177,6 @@ class ApiClient {
          timestamp: new Date().toISOString(),
       };
 
-      // Gestion des erreurs spécifiques
       if (status === 401 && !(error.config as RequestConfig)?.skipAuth) {
          this.handleUnauthorized();
       } else if (
@@ -198,9 +192,6 @@ class ApiClient {
    private handleUnauthorized(): void {
       if (typeof window === 'undefined') return;
 
-      console.warn('🔐 Session expired or unauthorized access');
-
-      // Nettoyage du storage
       localStorage.removeItem('auth-storage');
       sessionStorage.clear();
 

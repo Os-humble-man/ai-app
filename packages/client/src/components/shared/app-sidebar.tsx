@@ -173,7 +173,6 @@ export const AppSidebar = ({
    const updateFolderMutation = useUpdateFolder();
    const deleteFolderMutation = useDeleteFolder();
 
-   // Mock data for templates (TODO: Replace with real data from backend)
    const [templates, setTemplates] = useState([
       { id: '1', name: 'Code Review', uses: 12 },
       { id: '2', name: 'Meeting Notes', uses: 8 },
