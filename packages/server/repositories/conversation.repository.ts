@@ -1,12 +1,6 @@
 import type { Role } from '../generated/prisma/enums';
+import type { Message } from '../types/Conversation';
 import { BaseRepository } from './base.repository';
-
-interface Message {
-   role: 'user' | 'assistant';
-   content: string;
-   model_used?: string;
-   token_count?: number;
-}
 
 export class ConversationRepository extends BaseRepository {
    async create(userId: string, title: string, model: string) {

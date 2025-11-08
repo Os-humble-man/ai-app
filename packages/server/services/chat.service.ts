@@ -1,6 +1,8 @@
 import OpenAI from 'openai';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { inject } from 'inversify';
+import type { Message } from '../types/Conversation';
+import { TokensHelper } from '../utils/tokensHelper';
 
 interface ChatResponse {
    id: string;
@@ -11,13 +13,6 @@ interface StreamChunk {
    id: string;
    content: string;
    done: boolean;
-}
-
-interface Message {
-   role: 'user' | 'assistant';
-   content: string;
-   model_used?: string;
-   token_count?: number;
 }
 
 const openai = new OpenAI({
@@ -152,7 +147,10 @@ Titre:`;
             role: 'user',
             content: prompt,
             model_used: this.DEFAULT_MODEL,
-            token_count: prompt.trim().length,
+            token_count: TokensHelper.getTokenCountForMessage(
+               prompt,
+               this.DEFAULT_MODEL
+            ),
          });
 
          const response = await openai.chat.completions.create({
@@ -170,7 +168,10 @@ Titre:`;
             role: 'assistant',
             content: assistantMessage,
             model_used: this.DEFAULT_MODEL,
-            token_count: assistantMessage.length,
+            token_count: TokensHelper.getTokenCountForMessage(
+               assistantMessage,
+               this.DEFAULT_MODEL
+            ),
          });
 
          // save message and conversation ID
@@ -288,7 +289,10 @@ Titre:`;
             role: 'assistant',
             content: cleanResponse,
             model_used: this.DEFAULT_MODEL,
-            token_count: fullResponse.length,
+            token_count: TokensHelper.getTokenCountForMessage(
+               cleanResponse,
+               this.DEFAULT_MODEL
+            ),
          });
 
          // Save messages - conversation is guaranteed to exist now
