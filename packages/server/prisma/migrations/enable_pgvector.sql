@@ -1,0 +1,13 @@
+-- Enable pgvector extension for vector similarity search
+CREATE EXTENSION IF NOT EXISTS vector;
+-- Note: If you're using Prisma migrations, this should be added to your migration
+-- or executed manually in your PostgreSQL database.
+-- Optional: Create an index on the embedding column for faster similarity searches
+-- Uncomment the following line after your first documents are processed:
+-- CREATE INDEX IF NOT EXISTS docs_vectors_embedding_idx ON docs_vectors USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+-- Alternative index using HNSW (better for large datasets, requires pgvector 0.5.0+):
+-- CREATE INDEX IF NOT EXISTS docs_vectors_embedding_idx ON docs_vectors USING hnsw (embedding vector_cosine_ops);
+-- Note: For production, choose the appropriate index based on your dataset size:
+-- - Small datasets (< 10k vectors): No index needed
+-- - Medium datasets (10k-1M vectors): Use IVFFlat
+-- - Large datasets (> 1M vectors): Use HNSW

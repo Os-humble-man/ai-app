@@ -146,7 +146,6 @@ class ApiClient {
    }
 
    private normalizeError(error: AxiosError): ErrorResponse {
-      // Erreur réseau ou timeout
       if (!error.response) {
          return {
             status: 0,
@@ -211,7 +210,6 @@ class ApiClient {
    private extractData<T>(response: AxiosResponse<unknown>): T {
       const data = response.data;
 
-      // Si la réponse suit le format ApiResponse<T>
       if (data && typeof data === 'object' && 'data' in (data as object)) {
          const apiResponse = data as ApiResponse<T>;
          if (apiResponse.data === null || apiResponse.data === undefined) {
@@ -220,11 +218,9 @@ class ApiClient {
          return apiResponse.data;
       }
 
-      // Si la réponse est directement les données
       return data as T;
    }
 
-   // Méthodes HTTP améliorées
    public async get<T>(url: string, config?: RequestConfig): Promise<T> {
       const response = await this.axiosInstance.get(url, config);
       return this.extractData<T>(response);
@@ -378,7 +374,6 @@ class ApiClient {
       }
    }
 
-   // Méthodes utilitaires
    public setHeader(key: string, value: string): void {
       this.axiosInstance.defaults.headers.common[key] = value;
    }
@@ -392,7 +387,6 @@ class ApiClient {
    }
 }
 
-// Export des instances
 export const createApiClient = () => new ApiClient();
 
 const defaultApiClient = new ApiClient();

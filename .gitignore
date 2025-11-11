@@ -37,3 +37,7 @@ test.session.sql
 DATABASE_SETUP.md
 IMPLEMENTATION_GUIDE.md
 *.md
+
+/packages/server/assets/documents/*
+/packages/server/assets/documents/*.pdf
+/packages/server/assets/documents/*.txt
