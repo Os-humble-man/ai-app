@@ -1,5 +1,7 @@
+import { injectable } from 'inversify';
 import { BaseRepository } from './base.repository';
 
+@injectable()
 class DocumentRepository extends BaseRepository {
    /**
     * Store a document chunk with its embedding in the database
@@ -82,21 +84,19 @@ class DocumentRepository extends BaseRepository {
     * @param queryEmbedding - The query embedding vector
     * @param limit - Maximum number of results to return
     */
-   //    async findSimilarChunks(queryEmbedding: number[], limit: number = 5) {
-   //       // Note: This requires pgvector extension and raw SQL
-   //       // For now, returning a placeholder - implement with raw query
-   //       const queryBuffer = Buffer.from(
-   //          new Float32Array(queryEmbedding).buffer
-   //       );
+   async findSimilarChunks(queryEmbedding: number[], limit: number = 5) {
+      // Note: This requires pgvector extension and raw SQL
+      // For now, returning a placeholder - implement with raw query
+      const queryBuffer = Buffer.from(new Float32Array(queryEmbedding).buffer);
 
-   //       return await this.prisma.$queryRaw`
-   //          SELECT id, "docId", title, "chunkIndex", content, metadata,
-   //                 (embedding <=> ${queryBuffer}::vector) as distance
-   //          FROM docs_vectors
-   //          ORDER BY embedding <=> ${queryBuffer}::vector
-   //          LIMIT ${limit}
-   //       `;
-   //    }
+      return await this.prisma.$queryRaw`
+            SELECT id, "docId", title, "chunkIndex", content, metadata,
+                   (embedding <=> ${queryBuffer}::vector) as distance
+            FROM docs_vectors
+            ORDER BY embedding <=> ${queryBuffer}::vector
+            LIMIT ${limit}
+         `;
+   }
 
    /**
     * Delete all chunks for a specific document

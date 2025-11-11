@@ -11,6 +11,8 @@ import { MailService } from './services/mail.service';
 import { FolderController } from './controllers/folder.controller';
 import { FolderService } from './services/folder.service';
 import { FolderRepository } from './repositories/folder.repository';
+import { DocumentRepository } from './repositories/document.repository';
+import { RagService } from './services/rag.service';
 const container = new Container();
 
 container
@@ -35,5 +37,9 @@ container
    .inSingletonScope();
 container.bind<FolderController>('FolderController').to(FolderController);
 container.bind<FolderRepository>('FolderRepository').to(FolderRepository);
+
+container.bind<DocumentRepository>('DocumentRepository').to(DocumentRepository);
+
+container.bind<RagService>('RagService').to(RagService).inSingletonScope();
 
 export { container };
