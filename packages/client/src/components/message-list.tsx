@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export interface Message {
    id: string;
@@ -40,10 +42,21 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             className={`max-w-sm sm:max-w-md lg:max-w-2xl xl:max-w-3xl px-4 py-2 rounded-lg ${
                isUser
                   ? 'bg-blue-500 text-white rounded-br-none'
-                  : 'bg-gray-200 text-gray-900 rounded-bl-none'
+                  : 'bg-gray-100 text-gray-900 rounded-bl-none'
             }`}
          >
-            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            {isUser ? (
+               // 💬 Texte simple pour le message utilisateur
+               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            ) : (
+               // 🤖 Rendu Markdown pour les messages de l'IA
+               <div className="prose prose-slate max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                     {message.content}
+                  </ReactMarkdown>
+               </div>
+            )}
+
             <p
                className={`text-xs mt-1 ${
                   isUser ? 'text-blue-100' : 'text-gray-500'
