@@ -21,6 +21,20 @@ chatRoutes.post(
    chatController.handleStreamMessage
 );
 
+//chat/rag - Send message with RAG context (non-streaming)
+chatRoutes.post(
+   '/rag',
+   validate(ConversationSchema.createConversation),
+   chatController.handleMessageWithRAG
+);
+
+//chat/rag/stream - Send message with RAG context (streaming)
+chatRoutes.post(
+   '/rag/stream',
+   validate(ConversationSchema.createConversation),
+   chatController.handleStreamMessageWithRAG
+);
+
 // POST /chat/conversations - Get all user conversations
 chatRoutes.post(
    '/conversations',

@@ -1,8 +1,9 @@
 import OpenAI from 'openai';
 import { ConversationRepository } from '../repositories/conversation.repository';
-import { inject } from 'inversify';
+import { inject, injectable } from 'inversify';
 import type { Message } from '../types/Conversation';
 import { TokensHelper } from '../utils/tokensHelper';
+import { RagService } from './rag.service';
 
 interface ChatResponse {
    id: string;
@@ -20,6 +21,7 @@ const openai = new OpenAI({
    baseURL: process.env.OPENROUTER_BASE_URL,
 });
 
+@injectable()
 export class ChatService {
    private readonly DEFAULT_MODEL = 'gpt-4o-mini';
    private readonly DEFAULT_TEMPERATURE = 0.2;
@@ -27,7 +29,9 @@ export class ChatService {
 
    constructor(
       @inject('ConversationRepository')
-      private conversationRepository: ConversationRepository
+      private conversationRepository: ConversationRepository,
+      @inject('RagService')
+      private ragService: RagService
    ) {}
 
    async generateConversationTitle(
@@ -57,7 +61,7 @@ Titre:`;
 
          const response = await openai.chat.completions.create({
             model: this.DEFAULT_MODEL,
-            messages: [{ role: 'user', content: titlePrompt }],
+            messages: [{ role: 'user', content: titlePrompt }] as any,
             temperature: 0.3,
             max_tokens: 30,
          });
@@ -110,6 +114,114 @@ Titre:`;
       );
    }
 
+   /**
+    * Send message with RAG context enhancement
+    */
+   async sendMessageWithRAG(
+      prompt: string,
+      conversationId: string | undefined,
+      userId: string
+   ): Promise<ChatResponse & { conversationId: string; sources?: any[] }> {
+      try {
+         let actualConversationId = conversationId;
+         let isNewConversation = false;
+
+         if (!actualConversationId) {
+            const conversation = await this.conversationRepository.create(
+               userId,
+               'Nouvelle conversation',
+               this.DEFAULT_MODEL
+            );
+            actualConversationId = conversation.id;
+            isNewConversation = true;
+         } else {
+            await this.conversationRepository.ensureConversationExists(
+               actualConversationId,
+               userId,
+               'Nouvelle conversation',
+               this.DEFAULT_MODEL
+            );
+         }
+
+         let messages: Message[] =
+            await this.conversationRepository.getConversationMessages(
+               actualConversationId
+            );
+
+         const systemPrompt = RagService.getSystemPrompt();
+         const ragResult = await this.ragService.answerWithContext(prompt);
+         // Build enhanced prompt with RAG context
+         const enhancedPrompt = RagService.buildPrompt(prompt, [
+            ragResult.context,
+         ]);
+
+         // Build messages for the OpenAI API (include system prompt)
+         const messagesForApi = [
+            { role: 'system', content: systemPrompt },
+            ...messages.map((m) => ({ role: m.role, content: m.content })),
+            { role: 'user', content: enhancedPrompt },
+         ];
+
+         // Add ONLY the original user prompt to stored conversation messages (not the enhanced prompt with RAG context)
+         messages.push({
+            role: 'user',
+            content: prompt,
+            model_used: this.DEFAULT_MODEL,
+            token_count: TokensHelper.getTokenCountForMessage(
+               prompt,
+               this.DEFAULT_MODEL
+            ),
+         });
+
+         const response = await openai.chat.completions.create({
+            model: this.DEFAULT_MODEL,
+            messages: messagesForApi as any,
+            temperature: this.DEFAULT_TEMPERATURE,
+            max_tokens: this.DEFAULT_MAX_TOKENS,
+         });
+
+         const assistantMessage =
+            response.choices[0]?.message?.content?.trim() ||
+            "Désolé, je n'ai pas pu générer de réponse.";
+
+         messages.push({
+            role: 'assistant',
+            content: assistantMessage,
+            model_used: this.DEFAULT_MODEL,
+            token_count: TokensHelper.getTokenCountForMessage(
+               assistantMessage,
+               this.DEFAULT_MODEL
+            ),
+         });
+
+         await this.conversationRepository.saveConversationMessages(
+            actualConversationId,
+            messages
+         );
+
+         if (isNewConversation || messages.length === 2) {
+            await this.generateConversationTitle(
+               actualConversationId,
+               messages
+            ).catch((error) =>
+               console.error('Title generation failed:', error)
+            );
+         }
+
+         return {
+            id: response.id,
+            message: assistantMessage,
+            conversationId: actualConversationId,
+         };
+      } catch (error) {
+         console.error('Error in sendMessageWithRAG:', error);
+         throw new Error(
+            'Failed to send message with RAG: ' +
+               (error instanceof Error ? error.message : 'Unknown error')
+         );
+      }
+   }
+
    async sendMessage(
       prompt: string,
       conversationId: string | undefined,
@@ -155,7 +267,7 @@ Titre:`;
 
          const response = await openai.chat.completions.create({
             model: this.DEFAULT_MODEL,
-            messages: messages,
+            messages: messages as any,
             temperature: this.DEFAULT_TEMPERATURE,
             max_tokens: this.DEFAULT_MAX_TOKENS,
          });
@@ -199,6 +311,160 @@ Titre:`;
          console.error('Error in sendMessage:', error);
          throw new Error(
             'Failed to send message: ' +
+               (error instanceof Error ? error.message : 'Unknown error')
+         );
+      }
+   }
+
+   /**
+    * Send message stream with RAG context enhancement
+    */
+   async *sendMessageStreamWithRAG(
+      prompt: string,
+      conversationId: string | undefined,
+      userId: string
+   ): AsyncGenerator<StreamChunk & { conversationId?: string }> {
+      try {
+         let actualConversationId = conversationId;
+         let messages: Message[] = [];
+         let isNewConversation = false;
+
+         // Create or get conversation
+         if (!actualConversationId) {
+            const conversation = await this.conversationRepository.create(
+               userId,
+               'Nouvelle conversation',
+               this.DEFAULT_MODEL
+            );
+            actualConversationId = conversation.id;
+            isNewConversation = true;
+            messages = [];
+         } else {
+            await this.conversationRepository.ensureConversationExists(
+               actualConversationId,
+               userId,
+               'Nouvelle conversation',
+               this.DEFAULT_MODEL
+            );
+
+            messages =
+               await this.conversationRepository.getConversationMessages(
+                  actualConversationId
+               );
+            isNewConversation = messages.length === 0;
+         }
+
+         // 🔥 Get RAG context
+         const systemPrompt = RagService.getSystemPrompt();
+         const ragResult = await this.ragService.answerWithContext(prompt);
+         const enhancedPrompt = RagService.buildPrompt(prompt, [
+            ragResult.context,
+         ]);
+
+         // Build messages for the OpenAI API (include system prompt)
+         const messagesForApi = [
+            { role: 'system', content: systemPrompt },
+            ...messages.map((m) => ({ role: m.role, content: m.content })),
+            { role: 'user', content: enhancedPrompt },
+         ];
+
+         // Add ONLY the original user prompt to stored conversation messages (not the enhanced prompt with RAG context)
+         messages.push({
+            role: 'user',
+            content: prompt,
+            model_used: this.DEFAULT_MODEL,
+            token_count: TokensHelper.getTokenCountForMessage(
+               prompt,
+               this.DEFAULT_MODEL
+            ),
+         });
+
+         const stream = await openai.chat.completions.create({
+            model: this.DEFAULT_MODEL,
+            messages: messagesForApi as any,
+            temperature: this.DEFAULT_TEMPERATURE,
+            max_tokens: this.DEFAULT_MAX_TOKENS,
+            stream: true,
+         });
+
+         let fullResponse = '';
+         let responseId = '';
+
+         // Send conversationId immediately so frontend knows it
+         yield {
+            id: 'conversation',
+            content: '',
+            done: false,
+            conversationId: actualConversationId,
+         };
+
+         for await (const chunk of stream) {
+            const delta = chunk.choices[0]?.delta;
+
+            if (chunk.id && !responseId) {
+               responseId = chunk.id;
+            }
+
+            if (delta?.content) {
+               const content = delta.content;
+               fullResponse += content;
+               yield {
+                  id: responseId,
+                  content: content,
+                  done: false,
+               };
+            }
+
+            if (chunk.choices[0]?.finish_reason === 'length') {
+               console.warn('Stream ended due to token limit');
+               break;
+            }
+         }
+
+         const cleanResponse = fullResponse.trim();
+         messages.push({
+            role: 'assistant',
+            content: cleanResponse,
+            model_used: this.DEFAULT_MODEL,
+            token_count: TokensHelper.getTokenCountForMessage(
+               cleanResponse,
+               this.DEFAULT_MODEL
+            ),
+         });
+
+         await this.conversationRepository.saveConversationMessages(
+            actualConversationId,
+            messages
+         );
+
+         if (isNewConversation && messages.length >= 2) {
+            await this.generateConversationTitle(
+               actualConversationId,
+               messages
+            ).catch((error) =>
+               console.error('Background title generation failed:', error)
+            );
+         }
+
+         console.log(
+            `Conversation ${actualConversationId}: RAG Stream completed`
+         );
+
+         yield {
+            id: responseId,
+            content: '',
+            done: true,
+         };
+      } catch (error) {
+         console.error('Error in sendMessageStreamWithRAG:', error);
+         yield {
+            id: 'error',
+            content:
+               'Une erreur est survenue lors de la génération de la réponse.',
+            done: true,
+         };
+         throw new Error(
+            'RAG Streaming failed: ' +
                (error instanceof Error ? error.message : 'Unknown error')
          );
       }

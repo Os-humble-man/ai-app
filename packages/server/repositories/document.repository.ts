@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 import { BaseRepository } from './base.repository';
+import { createId } from '@paralleldrive/cuid2';
 
 @injectable()
 class DocumentRepository extends BaseRepository {
@@ -21,21 +22,26 @@ class DocumentRepository extends BaseRepository {
       metadata?: Record<string, any>
    ) {
       try {
-         // Convert embedding array to Buffer for Bytes storage
-         const embeddingBuffer = Buffer.from(
-            new Float32Array(embedding).buffer
-         );
+         const id = createId();
+         const embeddingStr = `[${embedding.join(',')}]`;
+         const metadataJson = JSON.stringify(metadata || {});
+         const now = new Date();
 
-         return await this.prisma.docVector.create({
-            data: {
-               docId,
-               title,
-               chunkIndex,
-               content,
-               metadata: metadata || {},
-               embedding: embeddingBuffer,
-            },
-         });
+         await this.prisma.$executeRaw`
+            INSERT INTO docs_vectors (id, "docId", title, "chunkIndex", content, metadata, embedding, "createdAt", "updatedAt")
+            VALUES (
+               ${id},
+               ${docId},
+               ${title},
+               ${chunkIndex},
+               ${content},
+               ${metadataJson}::jsonb,
+               ${embeddingStr}::vector,
+               ${now},
+               ${now}
+            )
+         `;
+         return { id, docId, title, chunkIndex };
       } catch (error) {
          console.error('Error storing document chunk:', error);
          throw error;
@@ -56,27 +62,30 @@ class DocumentRepository extends BaseRepository {
          metadata?: Record<string, any>;
       }>
    ) {
-      return await this.withTransaction(async (tx) => {
+      try {
          const results = [];
+         const now = new Date();
          for (const chunk of chunks) {
-            const embeddingBuffer = Buffer.from(
-               new Float32Array(chunk.embedding).buffer
-            );
+            const id = createId();
+            const vectorString = `[${chunk.embedding.join(',')}]`;
+            const metadataJson = JSON.stringify(chunk.metadata || {});
 
-            const result = await tx.docVector.create({
-               data: {
-                  docId: chunk.docId,
-                  title: chunk.title,
-                  chunkIndex: chunk.chunkIndex,
-                  content: chunk.content,
-                  metadata: chunk.metadata || {},
-                  embedding: embeddingBuffer,
-               },
+            await this.prisma.$executeRaw`
+               INSERT INTO docs_vectors (id, "docId", title, "chunkIndex", content, metadata, embedding, "createdAt", "updatedAt")
+               VALUES (${id}, ${chunk.docId}, ${chunk.title}, ${chunk.chunkIndex}, ${chunk.content}, ${metadataJson}::jsonb, ${vectorString}::vector, ${now}, ${now})
+            `;
+            results.push({
+               id,
+               docId: chunk.docId,
+               title: chunk.title,
+               chunkIndex: chunk.chunkIndex,
             });
-            results.push(result);
          }
          return results;
-      });
+      } catch (error) {
+         console.error('Error storing document chunks:', error);
+         throw error;
+      }
    }
 
    /**
@@ -85,17 +94,21 @@ class DocumentRepository extends BaseRepository {
     * @param limit - Maximum number of results to return
     */
    async findSimilarChunks(queryEmbedding: number[], limit: number = 5) {
-      // Note: This requires pgvector extension and raw SQL
-      // For now, returning a placeholder - implement with raw query
-      const queryBuffer = Buffer.from(new Float32Array(queryEmbedding).buffer);
+      try {
+         // Convert the embedding array to a vector string format
+         const vectorString = `[${queryEmbedding.join(',')}]`;
 
-      return await this.prisma.$queryRaw`
+         return await this.prisma.$queryRaw`
             SELECT id, "docId", title, "chunkIndex", content, metadata,
-                   (embedding <=> ${queryBuffer}::vector) as distance
+                   (embedding <=> ${vectorString}::vector) as distance
             FROM docs_vectors
-            ORDER BY embedding <=> ${queryBuffer}::vector
+            ORDER BY embedding <=> ${vectorString}::vector
             LIMIT ${limit}
          `;
+      } catch (error) {
+         console.error('Error finding similar chunks:', error);
+         throw error;
+      }
    }
 
    /**

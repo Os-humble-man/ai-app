@@ -188,6 +188,97 @@ export class ChatController extends BaseController {
       });
    };
 
+   // 🔥 NEW: RAG-enhanced message handler
+   handleMessageWithRAG = async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+   ) => {
+      console.log('Handle RAG message :', req.body);
+      const { prompt, conversationId, senderId } = req.body;
+      const actualUserId = senderId;
+
+      this.handleRequest(req, res, next, async () => {
+         return this.chatService.sendMessageWithRAG(
+            prompt,
+            conversationId!,
+            actualUserId
+         );
+      });
+   };
+
+   // 🔥 NEW: RAG-enhanced streaming handler
+   handleStreamMessageWithRAG = async (
+      req: Request,
+      res: Response,
+      next: NextFunction
+   ) => {
+      console.log('RAG stream', req.body);
+      try {
+         const { prompt, conversationId, senderId } = req.body;
+         const actualUserId = senderId;
+
+         res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Cache-Control, Content-Type',
+            'Transfer-Encoding': 'chunked',
+         });
+
+         res.write('event: connected\ndata: {"type":"connected"}\n\n');
+
+         const stream = this.chatService.sendMessageStreamWithRAG(
+            prompt,
+            conversationId || this.generateConversationId(),
+            actualUserId
+         );
+
+         for await (const chunk of stream) {
+            const eventData = {
+               type: chunk.done ? 'done' : 'chunk',
+               id: chunk.id,
+               content: chunk.content,
+               done: chunk.done,
+            };
+
+            res.write(`data: ${JSON.stringify(eventData)}\n\n`);
+
+            if (typeof (res as any).flush === 'function') {
+               (res as any).flush();
+            }
+
+            if (chunk.done) {
+               break;
+            }
+         }
+
+         res.end();
+      } catch (error: any) {
+         console.error('Error in RAG streaming:', error);
+
+         if (!res.headersSent) {
+            res.writeHead(500, {
+               'Content-Type': 'text/event-stream',
+               'Cache-Control': 'no-cache',
+               Connection: 'keep-alive',
+            });
+         }
+
+         const errorData = {
+            type: 'error',
+            error: 'Failed to get RAG response from AI',
+            details: error.message,
+         };
+
+         res.write(`data: ${JSON.stringify(errorData)}\n\n`);
+         res.end();
+
+         next(error);
+      }
+   };
+
    private generateConversationId(): string {
       return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
    }

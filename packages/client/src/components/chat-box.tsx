@@ -8,6 +8,7 @@ import {
    useConversation,
 } from '@/hooks/queries/conversation.queries';
 import { useSendMessageStream } from '@/hooks/mutation/conversation.mutation';
+import { useRagMode } from '@/contexts/RagModeContext';
 
 export const ChatBox = () => {
    const { id: urlConversationId } = useParams<{ id: string }>();
@@ -17,6 +18,7 @@ export const ChatBox = () => {
       urlConversationId
    );
    const { user } = useAuthStore();
+   const { isRagMode } = useRagMode();
    const { data: conversations } = useConversations(user?.id);
    const { data: conversation, isLoading: isConversationLoading } =
       useConversation(conversationId || '');
@@ -97,6 +99,7 @@ export const ChatBox = () => {
                },
             },
             conversationId: conversationId,
+            useRag: isRagMode,
          });
       } catch (error) {
          console.error('Error sending message:', error);
@@ -144,6 +147,26 @@ export const ChatBox = () => {
                         comment puis-je vous aider aujourd'hui ?
                      </span>
                   </h1>
+                  {isRagMode && (
+                     <div className="mt-4 px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg flex items-center gap-2">
+                        <svg
+                           xmlns="http://www.w3.org/2000/svg"
+                           width="16"
+                           height="16"
+                           viewBox="0 0 24 24"
+                           fill="none"
+                           stroke="currentColor"
+                           strokeWidth="2"
+                           strokeLinecap="round"
+                           strokeLinejoin="round"
+                        >
+                           <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                        </svg>
+                        <span className="text-sm font-medium">
+                           Mode RAG activé - Utilisation des documents internes
+                        </span>
+                     </div>
+                  )}
                </div>
             ) : (
                <MessageList messages={messages} />
@@ -151,12 +174,34 @@ export const ChatBox = () => {
          </div>
 
          <div className="absolute bottom-0 left-0 right-0 p-6  backdrop-blur-sm ">
+            {isRagMode && (
+               <div className="mb-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg text-xs font-medium inline-flex items-center gap-1.5">
+                  <svg
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="12"
+                     height="12"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     strokeWidth="2"
+                     strokeLinecap="round"
+                     strokeLinejoin="round"
+                  >
+                     <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                  </svg>
+                  Mode RAG activé
+               </div>
+            )}
             <div className="relative max-w-full">
                <Textarea
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Tapez votre message ici..."
+                  placeholder={
+                     isRagMode
+                        ? 'Posez une question sur vos documents...'
+                        : 'Tapez votre message ici...'
+                  }
                   className="w-full h-32 resize-none rounded-2xl border border-gray-300 p-4 pr-14 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   disabled={sendMessageMutation.isPending}
                />

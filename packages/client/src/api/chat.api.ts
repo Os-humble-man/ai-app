@@ -27,9 +27,11 @@ export const chatApi = {
       onChunk: (chunk: string) => void,
       onDone: () => void,
       onError: (error: string) => void,
-      onConversationId?: (conversationId: string) => void
+      onConversationId?: (conversationId: string) => void,
+      useRag: boolean = false
    ) => {
-      await apiClient.stream<StreamChunk>('/chat/stream', message, {
+      const endpoint = useRag ? '/chat/rag/stream' : '/chat/stream';
+      await apiClient.stream<StreamChunk>(endpoint, message, {
          onChunk,
          onDone,
          onError,
@@ -40,8 +42,9 @@ export const chatApi = {
    /**
     * Send a message without streaming (regular HTTP request)
     */
-   sendMessage: async (message: ChatMessage) => {
-      return apiClient.post('/chat', message);
+   sendMessage: async (message: ChatMessage, useRag: boolean = false) => {
+      const endpoint = useRag ? '/chat/rag' : '/chat';
+      return apiClient.post(endpoint, message);
    },
 
    /**

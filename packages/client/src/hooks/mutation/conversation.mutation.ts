@@ -10,13 +10,18 @@ interface SendMessageStreamParams {
    message: ChatMessage;
    callbacks: SendMessageCallbacks;
    conversationId?: string;
+   useRag?: boolean;
 }
 
 export const useSendMessageStream = (userId?: string) => {
    const queryClient = useQueryClient();
 
    return useMutation({
-      mutationFn: async ({ message, callbacks }: SendMessageStreamParams) => {
+      mutationFn: async ({
+         message,
+         callbacks,
+         useRag = false,
+      }: SendMessageStreamParams) => {
          return new Promise<void>((resolve, reject) => {
             chatApi
                .sendMessageStream(
@@ -36,7 +41,9 @@ export const useSendMessageStream = (userId?: string) => {
                   // onConversationId
                   (conversationId: string) => {
                      callbacks.onConversationId?.(conversationId);
-                  }
+                  },
+                  // useRag
+                  useRag
                )
                .catch(reject);
          });
@@ -68,8 +75,14 @@ export const useSendMessage = (userId?: string) => {
    const queryClient = useQueryClient();
 
    return useMutation({
-      mutationFn: async (message: ChatMessage) => {
-         return chatApi.sendMessage(message);
+      mutationFn: async ({
+         message,
+         useRag = false,
+      }: {
+         message: ChatMessage;
+         useRag?: boolean;
+      }) => {
+         return chatApi.sendMessage(message, useRag);
       },
       onSuccess: () => {
          // Invalider et refetch immédiatement les conversations pour rafraîchir la liste

@@ -17,6 +17,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 // import { useState } from "react";
 // import NotificationModal from "../modals/NotificationModal";
 // import UserMenu from "../layout/UserMenu";
@@ -26,6 +28,8 @@ import { useState } from 'react';
 
 interface HeaderProps {
    currentView: string;
+   isRagMode?: boolean;
+   onRagModeChange?: (enabled: boolean) => void;
 }
 
 const chatbots = [
@@ -35,10 +39,13 @@ const chatbots = [
    { name: 'Assistant', icon: <Asterisk className="h-4 w-4" /> },
 ];
 
-export default function Header({ currentView }: HeaderProps) {
+export default function Header({
+   currentView,
+   isRagMode = false,
+   onRagModeChange,
+}: HeaderProps) {
    const { setTheme, theme } = useTheme();
    const [selectedBot, setSelectedBot] = useState('GPT-5');
-   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
    //   const [openNotifications, setOpenNotifications] = useState(false);
 
    return (
@@ -71,6 +78,24 @@ export default function Header({ currentView }: HeaderProps) {
                </DropdownMenuContent>
             </DropdownMenu>
             <div className="ml-auto flex items-center gap-2">
+               {/* RAG Mode Switch */}
+               <Label
+                  htmlFor="rag-mode"
+                  className="text-sm font-medium cursor-pointer"
+               >
+                  RAG Mode
+               </Label>
+               <Switch
+                  id="rag-mode"
+                  checked={isRagMode}
+                  onCheckedChange={onRagModeChange}
+               />
+
+               <Separator
+                  orientation="vertical"
+                  className="mx-1 data-[orientation=vertical]:h-4"
+               />
+
                <div className="flex items-center gap-2">
                   <DropdownMenu>
                      <DropdownMenuTrigger asChild>
