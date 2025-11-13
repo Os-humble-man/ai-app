@@ -46,10 +46,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             }`}
          >
             {isUser ? (
-               // 💬 Texte simple pour le message utilisateur
                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
             ) : (
-               // 🤖 Rendu Markdown pour les messages de l'IA
                <div className="prose prose-slate max-w-none">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                      {message.content}
