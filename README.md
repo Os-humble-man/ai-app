@@ -127,7 +127,7 @@ RAGify ensures every employee gets **instant, reliable answers** without searchi
 ### 🧩 Structural Overview
 
 ```
-ai-app/
+RAGify/
 ├── packages/
 │   ├── client/                    # React + Vite frontend
 │   │   ├── src/
@@ -385,7 +385,7 @@ bun run lint       # Run ESLint
 ## 👤 Author
 
 **Oscar Kanangila**  
-🚀 AI Engineer & Full-Stack Developer
+🚀 Web Developer
 
 **Expertise:**
 
@@ -400,7 +400,7 @@ bun run lint       # Run ESLint
 **Connect:**
 
 - GitHub: [@Os-humble-man](https://github.com/Os-humble-man)
-- Project: [ai-app](https://github.com/Os-humble-man/ai-app)
+- Project: [RAGify](https://github.com/Os-humble-man/RAGify)
 
 ---
 
@@ -451,5 +451,6 @@ This project is distributed under the **MIT License**.
 - **OpenRouter** for multi-model LLM routing
 - **Prisma** for excellent ORM tooling
 - **Radix UI** for accessible component primitives
+- **SHADCN UI** for accessible component primitives
 - **TailwindCSS** for utility-first styling
 - **Bun** for blazing fast JavaScript runtime
