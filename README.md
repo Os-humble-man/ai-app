@@ -1,8 +1,10 @@
-# 🚀 RAGify - Enterprise Documentation RAG Chatbot
+# 🚀 RAGify: AI-Powered Documentation Chatbot
+
+## RAG for Enterprise Knowledge
 
 <div align="center">
 
-**An intelligent RAG-powered chatbot that enables natural language querying of enterprise documentation with precise, source-cited responses.**
+**A smart chatbot that enables employees to query company documentation (Google Docs, Confluence, PDFs) in natural language and receive precise answers with cited sources.**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://reactjs.org/)
@@ -10,7 +12,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-blue.svg)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-Portfolio-orange.svg)](LICENSE)
 
-[Features](#-features) • [Architecture](#-architecture) • [Installation](#-installation) • [Usage](#-usage) • [Tech Stack](#-tech-stack)
+[Overview](#-overview) • [Features](#-key-features) • [Installation](#-installation) • [Usage](#-usage) • [Skills](#-showcase--skills-demonstrated)
 
 </div>
 
@@ -18,48 +20,43 @@
 
 ## 📖 Overview
 
-**RAGify** is a production-ready Retrieval-Augmented Generation (RAG) chatbot designed for enterprise environments. It allows employees to query internal documentation (Google Docs, Confluence, PDFs, etc.) using natural language and receive accurate answers with source citations.
+**RAGify** is an AI-powered documentation chatbot that enables employees to query company documentation (Google Docs, Confluence, PDFs) in natural language and receive precise answers with cited sources. This project demonstrates advanced retrieval-augmented generation (RAG) systems in a full-stack TypeScript application, focusing on enterprise documentation access.
+
+It connects internal knowledge bases to an intuitive chat interface built with React, enabling contextual, source-linked answers for real business scenarios—such as onboarding or HR queries.
 
 ### 🎯 Real-World Use Case
 
-> *A new employee wonders how to request time off. Instead of searching through dozens of Confluence pages, they simply ask the chatbot: "How do I request vacation time?" The chatbot responds precisely, citing the official procedure and providing a link to the appropriate form.*
+> **Example**: A new employee asks, *"How do I request leave?"* The chatbot immediately provides the official procedure and a direct link to the leave request form—without browsing dozens of Confluence pages.
 
-This project demonstrates advanced full-stack development skills, AI integration, and enterprise-grade architecture - perfect for showcasing technical capabilities to recruiters and potential employers.
+This project showcases advanced full-stack development skills, AI/RAG integration, and enterprise-grade architecture - perfect for demonstrating technical capabilities to recruiters and potential employers.
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-### 🤖 RAG-Powered Intelligence
-- **Semantic Search**: Vector-based document retrieval using OpenAI embeddings
-- **Context-Aware Responses**: LLM-generated answers grounded in company documentation
-- **Source Citations**: Every response includes references to source documents
-- **Multi-Document Support**: Handles PDFs, text files, and structured documents
+- **Natural language question answering** over internal documents (Google Docs, Confluence, PDFs)
+- **Precise, cited responses** with deep-linking to source procedures and forms
+- **Real-time AI response streaming** in chat UI with progressive rendering
+- **Conversation history**, session management, and document-based context retrieval
+- **RAG system** for embedding-based semantic search and prompt enrichment
+- **Clean, responsive UI** (TailwindCSS, Radix UI) with modern design
+- **Multi-auth support**: Email/password, OAuth (Google, GitHub)
+- **Folder organization** for conversation categorization and management
+- **Modular, maintainable architecture** (React, Express, TypeScript, Vite, Bun)
 
-### 👥 User Management
-- **Multi-Auth Support**: OAuth (Google, GitHub) and traditional email/password authentication
-- **Email Verification**: Secure account activation with verification tokens
-- **User Settings**: Customizable preferences (theme, language, default model)
-- **Session Management**: Secure JWT-based authentication with refresh tokens
+---
 
-### 💬 Conversation Management
-- **Real-Time Streaming**: Progressive response rendering for better UX
-- **Conversation History**: Persistent chat storage with full-text search
-- **Folder Organization**: Hierarchical conversation categorization
-- **Favorites & Sharing**: Mark important conversations and share with team members
-- **Templates**: Pre-built prompts for common queries
+## 🚀 Current Functionality
 
-### 📊 Analytics & Monitoring
-- **Token Usage Tracking**: Monitor API consumption per user/conversation
-- **Conversation Analytics**: Insights into user interactions and query patterns
-- **Export Functionality**: Download conversations in multiple formats
-
-### 🔒 Security & Performance
-- **Rate Limiting**: Prevent API abuse with configurable limits
-- **Helmet.js Security**: Protection against common web vulnerabilities
-- **CORS Configuration**: Controlled cross-origin resource sharing
-- **Compression**: Response compression for faster load times
-- **Production-Ready**: Environment-based configuration and error handling
+- ✅ **Real-time chat** over GPT-4o-mini (OpenAI) with session context
+- ✅ **Sidebar navigation** with conversation search, recents, favorites, and folders
+- ✅ **RAG endpoints and logic** for enriched answer generation (document/embedding search, prompt construction)
+- ✅ **Authentication system**: Email/password, OAuth (Google, GitHub)
+- ✅ **User settings**: Theme preferences, default model selection, language options
+- ✅ **Conversation export**: Download chats in multiple formats (planned: txt, markdown, PDF, JSON)
+- ✅ **Modular database schema**: Users, conversations, messages, documents, templates, plugins, analytics
+- ✅ **Token usage tracking**: Monitor API consumption per user and conversation
+- ✅ **Security features**: Rate limiting, Helmet.js protection, CORS configuration, JWT authentication
 
 ---
 
@@ -177,29 +174,58 @@ Citation Tracking → Client Display
 
 ### Prerequisites
 
-- **Bun** >= 1.3.0 (or Node.js >= 18)
+- **Node.js** >= 18 or **Bun** >= 1.3.0
 - **PostgreSQL** >= 16 with **pgvector** extension
 - **OpenAI API Key** (for embeddings and chat completions)
-- **Optional**: Google OAuth & GitHub OAuth credentials
+- **Optional**: Google OAuth & GitHub OAuth credentials for social login
 
-### Step 1: Install Bun (if needed)
+### Quick Start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Os-humble-man/ai-app.git
+cd ai-app
+
+# 2. Install dependencies
+bun install
+
+# 3. Configure environment (copy and edit .env files)
+cd packages/server && cp .env.example .env
+# Edit .env with your OpenAI API key, database URL, and JWT secret
+
+# 4. Set up database and run migrations
+bun run prisma:generate
+bun run prisma:dev
+
+# 5. (Optional) Index sample documents
+bun run prepare-docs
+
+# 6. Start development servers (from project root)
+cd ../..
+bun run dev
+```
+
+The app will be available at:
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3000
+- **API Docs**: http://localhost:3000/api-docs
+
+### Detailed Setup Instructions
+
+<details>
+<summary><strong>📥 Step 1: Install Bun (if needed)</strong></summary>
 
 ```bash
 curl -fsSL https://bun.sh/install | bash
 ```
 
-### Step 2: Clone & Install Dependencies
+Alternatively, use Node.js 18+ with npm/pnpm/yarn.
+</details>
+
+<details>
+<summary><strong>🗄️ Step 2: PostgreSQL + pgvector Setup</strong></summary>
 
 ```bash
-git clone https://github.com/Os-humble-man/ai-app.git
-cd ai-app
-bun install
-```
-
-### Step 3: Database Setup
-
-```bash
-# Install PostgreSQL with pgvector
 # Ubuntu/Debian:
 sudo apt install postgresql postgresql-contrib
 sudo apt install postgresql-16-pgvector
@@ -214,8 +240,10 @@ createdb ragify_db
 # Enable pgvector extension
 psql ragify_db -c "CREATE EXTENSION IF NOT EXISTS vector;"
 ```
+</details>
 
-### Step 4: Environment Configuration
+<details>
+<summary><strong>⚙️ Step 3: Environment Configuration</strong></summary>
 
 Create `.env` file in `packages/server/`:
 
@@ -238,7 +266,7 @@ CLIENT_URL=http://localhost:5173
 ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
 FRONTEND_URL=http://localhost:5173
 
-# OAuth (Optional - remove if not using)
+# OAuth (Optional)
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GITHUB_CLIENT_ID=your-github-client-id
@@ -258,22 +286,8 @@ Create `.env` file in `packages/client/`:
 VITE_API_URL=http://localhost:3000
 ```
 
-### Step 5: Database Migration
-
-```bash
-cd packages/server
-bun run prisma:generate
-bun run prisma:dev
-```
-
-### Step 6: (Optional) Prepare Sample Documents
-
-```bash
-# Add your documents to packages/server/documents/
-# Then run the document preparation script
-cd packages/server
-bun run prepare-docs
-```
+**Note**: See `DATABASE_SETUP.md` and `IMPLEMENTATION_GUIDE.md` for detailed schema, migration, and environment setup guides.
+</details>
 
 ---
 
@@ -421,93 +435,89 @@ The RAG system is the core innovation of this project:
 
 ---
 
-## 💼 Skills Demonstrated
+## 💼 Showcase & Skills Demonstrated
 
-This project showcases production-ready development skills across multiple domains:
+This project demonstrates production-ready development skills across multiple domains:
 
-### 🎨 Frontend Development
-- ✅ Modern React 19 with hooks, context, and custom hooks
-- ✅ Advanced TypeScript with generics and utility types
-- ✅ State management (Zustand + TanStack Query)
-- ✅ Responsive UI/UX with TailwindCSS and Radix UI
-- ✅ Real-time streaming with progressive rendering
-- ✅ Optimistic updates and error boundary handling
+| **Skill Area** | **Demonstrated By** |
+|----------------|---------------------|
+| **Full-stack TypeScript** | Backend (Express, Prisma), Frontend (React 19) with complete type safety |
+| **Modern DevOps & Tooling** | Monorepo architecture, Bun runtime, ESLint, Prettier, Husky git hooks |
+| **AI/ML Integration** | RAG endpoints, embedding search (text-embedding-3-small), OpenAI API, pgvector |
+| **Enterprise Data Retrieval** | Vector similarity search, semantic search, contextual Q&A with source citations |
+| **Secure/Scalable Architecture** | JWT auth, OAuth (Google/GitHub), session management, environment config |
+| **UI/UX Best Practices** | TailwindCSS 4, Radix UI, responsive design, real-time streaming |
+| **Backend Engineering** | Layered architecture (Controllers → Services → Repositories), Dependency Injection (InversifyJS) |
+| **Database Design** | PostgreSQL with pgvector, Prisma ORM, schema migrations, complex relations |
+| **API Development** | RESTful API, Server-Sent Events (SSE), streaming responses, Swagger documentation |
+| **Security & Performance** | Helmet.js, CORS, rate limiting, compression, bcrypt password hashing |
+| **State Management** | Zustand, TanStack Query, optimistic updates, error boundary handling |
+| **Documentation & Testing** | Comprehensive README, API docs, quickstart guides, modular test structure |
 
-### 🔧 Backend Development
-- ✅ RESTful API design with Express.js
-- ✅ Layered architecture (Controllers → Services → Repositories)
-- ✅ Dependency injection with InversifyJS
-- ✅ Multi-strategy authentication (OAuth + JWT + Credentials)
-- ✅ Database design with Prisma ORM
-- ✅ Vector database integration (pgvector)
-- ✅ Production-grade security (Helmet, CORS, Rate Limiting)
-- ✅ Structured logging with Winston
+### 🎯 Technical Highlights
 
-### 🤖 AI/ML Integration
-- ✅ OpenAI API integration (Chat Completions + Embeddings)
-- ✅ Retrieval-Augmented Generation (RAG) implementation
-- ✅ Vector similarity search
-- ✅ Token management and optimization
-- ✅ Streaming response handling
-
-### 🗄️ Database & DevOps
-- ✅ PostgreSQL with vector extension
-- ✅ Schema design and migrations
-- ✅ Monorepo architecture with workspaces
-- ✅ Git hooks for code quality (Husky)
-- ✅ Environment-based configuration
-- ✅ API documentation with Swagger
-
-### 📐 Software Engineering
-- ✅ Clean code principles (SOLID, DRY, KISS)
-- ✅ Separation of concerns
-- ✅ Type-safe development (full-stack TypeScript)
-- ✅ Error handling and validation
-- ✅ Scalable and maintainable architecture
-- ✅ Production-ready patterns
+- **Advanced RAG Pipeline**: Document chunking → Vector embeddings → Similarity search → Context injection → LLM response
+- **Real-time Streaming**: Progressive UI updates with Server-Sent Events for better UX
+- **Multi-Auth Strategy**: Passport.js with multiple providers + JWT token management
+- **Type-Safe Full Stack**: Shared types between client/server via monorepo structure
+- **Production-Ready Patterns**: Error handling, logging (Winston), validation (Zod), environment-based config
 
 ---
 
-## 🚧 Development Roadmap
+## 🚧 Implementation Roadmap
 
 ### ✅ Completed Features
-- [x] User authentication (OAuth + Credentials)
-- [x] RAG-powered Q&A system
-- [x] Document vectorization and indexing
-- [x] Real-time response streaming
-- [x] Conversation management
-- [x] Folder organization
-- [x] Source citation tracking
-- [x] User settings and preferences
-- [x] Analytics and token tracking
+- [x] Real-time chat with GPT-4o-mini and session context
+- [x] RAG-powered Q&A system with document embeddings
+- [x] User authentication (Email/password, OAuth Google, OAuth GitHub)
+- [x] Document vectorization and indexing (pgvector)
+- [x] Real-time response streaming (Server-Sent Events)
+- [x] Conversation management with search and favorites
+- [x] Folder organization for conversation categorization
+- [x] Source citation tracking in conversations
+- [x] User settings and preferences (theme, language, model)
+- [x] Analytics and token usage tracking
+- [x] Modular database schema with Prisma
 
-### 🔜 Upcoming Features
+### 🔜 Upcoming Features & Enhancements
+
 - [ ] **Multi-source Integration**
-  - [ ] Google Drive connector
-  - [ ] Confluence API integration
-  - [ ] SharePoint support
-- [ ] **Enhanced RAG**
-  - [ ] Hybrid search (semantic + keyword)
-  - [ ] Re-ranking for better relevance
-  - [ ] Multi-hop reasoning
-- [ ] **Collaboration**
-  - [ ] Team workspaces
+  - [ ] Google Drive connector for direct document sync
+  - [ ] Confluence API integration for wiki content
+  - [ ] SharePoint support for enterprise document management
+  
+- [ ] **Enhanced RAG Capabilities**
+  - [ ] Hybrid search combining semantic + keyword matching
+  - [ ] Re-ranking algorithms for better relevance
+  - [ ] Multi-hop reasoning for complex queries
+  - [ ] Streaming and non-streaming RAG endpoints
+  - [ ] Document linking directly in chat responses
+  
+- [ ] **Collaboration Features**
+  - [ ] Team workspaces and shared folders
   - [ ] Shared conversation threads
   - [ ] Role-based access control (RBAC)
+  
 - [ ] **Advanced Features**
-  - [ ] Conversation export (PDF, Markdown)
+  - [ ] Multi-model support (GPT-4, Claude, Llama)
+  - [ ] Dark mode and theme customization
+  - [ ] Conversation export (TXT, Markdown, PDF, JSON)
+  - [ ] Enhanced import/export functionality
+  - [ ] Plugin system for extensibility
   - [ ] Multi-language support (i18n)
-  - [ ] Voice input/output
-  - [ ] Mobile app (React Native)
-- [ ] **Infrastructure**
+  - [ ] Voice input/output capabilities
+  
+- [ ] **Analytics & Optimization**
+  - [ ] Document analytics dashboard
+  - [ ] Usage statistics and insights
+  - [ ] Batch processing for enterprise-scale document collections
+  - [ ] Performance optimization for large knowledge bases
+  
+- [ ] **Infrastructure & DevOps**
   - [ ] Unit and E2E tests (Vitest, Playwright)
   - [ ] CI/CD pipeline (GitHub Actions)
   - [ ] Docker containerization
-  - [ ] Kubernetes deployment
-- [ ] **AI Enhancements**
-  - [ ] Model selection (GPT-4, Claude, Llama)
-  - [ ] Fine-tuned embeddings
-  - [ ] Custom LLM hosting option
+  - [ ] Kubernetes deployment configurations
 
 ---
 
