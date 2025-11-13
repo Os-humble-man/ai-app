@@ -31,7 +31,6 @@ export const useAuth = () => {
             setLoading(true);
             setError(null);
             const response = await authApi.login(credentials);
-            console.log('response', response);
             setUser(response.user);
             setToken(response.token);
             return response;

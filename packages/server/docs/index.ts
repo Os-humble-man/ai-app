@@ -9,7 +9,7 @@ import './common.swagger';
 
 // Module-specific documentation
 import './chat.swagger';
-// import './auth.swagger';  // À décommenter quand créé
-// import './user.swagger';  // À décommenter quand créé
+// import './auth.swagger';
+// import './user.swagger';
 
 export {};

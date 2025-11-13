@@ -35,8 +35,6 @@ export function errorHandler(
       return res.status(err.statusCode).json(err.toResponse());
    }
 
-   console.error('Unexpected error:', err);
-
    return res.status(500).json({
       success: false,
       error: {

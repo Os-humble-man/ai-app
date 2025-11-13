@@ -14,12 +14,12 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
 async function pdfToText(filePath: string): Promise<string> {
    const txtPath = filePath.replace(/\.pdf$/i, '.txt');
 
-   // Si le txt existe déjà, on le réutilise
+   // If the txt already exists, reuse it.
    if (fs.existsSync(txtPath)) {
       return fs.readFileSync(txtPath, 'utf-8');
    }
 
-   // Essayer d'utiliser pdftotext
+   // Try to use pdftotext
    try {
       execSync(`pdftotext "${filePath}" "${txtPath}"`);
       return fs.readFileSync(txtPath, 'utf-8');

@@ -188,7 +188,7 @@ export class ChatController extends BaseController {
       });
    };
 
-   // 🔥 NEW: RAG-enhanced message handler
+   // RAG-enhanced message handler
    handleMessageWithRAG = async (
       req: Request,
       res: Response,
@@ -207,7 +207,7 @@ export class ChatController extends BaseController {
       });
    };
 
-   // 🔥 NEW: RAG-enhanced streaming handler
+   // RAG-enhanced streaming handler
    handleStreamMessageWithRAG = async (
       req: Request,
       res: Response,

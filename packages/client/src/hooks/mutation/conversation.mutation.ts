@@ -49,16 +49,16 @@ export const useSendMessageStream = (userId?: string) => {
          });
       },
       onSuccess: (_, variables) => {
-         // Invalider et refetch immédiatement les conversations pour rafraîchir la liste
+         // Immediately invalidate and refetch conversations to refresh the list
          queryClient.invalidateQueries({
             queryKey: ['conversations', userId],
          });
-         // Refetch immédiatement pour mettre à jour la sidebar
+         // Immediately refetch to update the sidebar
          queryClient.refetchQueries({
             queryKey: ['conversations', userId],
          });
 
-         // Invalider aussi la conversation spécifique si elle existe
+         // Also invalidate the specific conversation if it exists
          if (variables.message.conversationId) {
             queryClient.invalidateQueries({
                queryKey: ['conversation', variables.message.conversationId],
@@ -85,11 +85,11 @@ export const useSendMessage = (userId?: string) => {
          return chatApi.sendMessage(message, useRag);
       },
       onSuccess: () => {
-         // Invalider et refetch immédiatement les conversations pour rafraîchir la liste
+         // Immediately invalidate and refetch conversations to refresh the list
          queryClient.invalidateQueries({
             queryKey: ['conversations', userId],
          });
-         // Refetch immédiatement pour mettre à jour la sidebar
+         // Immediately refetch to update the sidebar
          queryClient.refetchQueries({
             queryKey: ['conversations', userId],
          });
